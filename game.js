@@ -255,7 +255,14 @@ function engineFirstTime() {
 
   document.addEventListener("mousemove", (e) => {
     if (e.target.id === "screen" && loadedImages["tileset"]) {
-      paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 🔻 | Selected tile #${selectedTileIndex}`;
+      paletteHeader.innerHTML = `
+        ${loadedImages["tileset"].name}.${loadedImages["tileset"].extension}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        | Selected tile #${selectedTileIndex}
+      `;
       gameMouseX = e.clientX;
       gameMouseY = e.clientY;
 
@@ -344,13 +351,18 @@ function engineFirstTime() {
       (mouseY + paletteScrollY * 2 * paletteTileSize) / paletteTileSize
     );
     const tileIndex = tileY * tilesPerRow + tileX;
-    paletteHeader.innerText = `${loadedImages["tileset"].name}.${
-      loadedImages["tileset"].extension
-    } 🔻 | Ctrl + drag to scroll${
-      tileIndex < 0
-        ? ""
-        : " | Tile #" + tileIndex + " (" + tileX + ", " + tileY + ")"
-    }`;
+    paletteHeader.innerHTML = `
+      ${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      | Ctrl + drag to scroll${
+        tileIndex < 0
+          ? ""
+          : " | Tile #" + tileIndex + " (" + tileX + ", " + tileY + ")"
+      }
+    `;
 
     if (isSelecting && selectionStart) {
       selectionEnd = { x: tileX, y: tileY };
@@ -571,7 +583,14 @@ function engineFirstTime() {
         moveSelectionStart = null;
         break;
     }
-    paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 🔻 | Selected tile #${selectedTileIndex}`;
+    paletteHeader.innerHTML = `
+      ${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      | Selected tile #${selectedTileIndex}
+    `;
   });
 
   document.addEventListener("keyup", (e) => {
@@ -815,7 +834,13 @@ function displayInfo() {
 function refreshEngine() {
   const tileset = loadedImages["tileset"];
   if (!tileset) return;
-  paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 🔻`;
+  paletteHeader.innerHTML = `
+  ${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
   const tilesetSize = tileset.size;
   eraserBrush =
     tileset.empty.type === "null"
@@ -1025,7 +1050,7 @@ function displayTileSelections() {
 
   const paletteTileSize =
     loadedImages["tileset"].size * PALETTE_TILE_SIZE_SCALE;
-  let hoveredTileIndex = paletteHeader.innerText.split("Tile #")[1];
+  let hoveredTileIndex = paletteHeader.innerHTML.split("Tile #")[1];
   const tilesPerRow =
     loadedImages["tileset"].image.width / loadedImages["tileset"].size;
   tileDashOffset -= 0.3;
@@ -1096,7 +1121,7 @@ function displayTileSelections() {
     }
 
     const isOutsidePalette =
-      !isResizing && paletteHeader.innerText.split("Selected tile #")[1];
+      !isResizing && paletteHeader.innerHTML.split("Selected tile #")[1];
     if (isOutsidePalette) {
       const offsetX = Math.floor(selectedTiles.width / 2);
       const offsetY = Math.floor(selectedTiles.height / 2);
