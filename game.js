@@ -81,6 +81,14 @@ importBtn.addEventListener("click", () => {
 const exportBtn = document.getElementById("exportBtn");
 exportBtn.addEventListener("click", exportMap);
 
+const resetBtn = document.getElementById("resetBtn");
+resetBtn.addEventListener("click", () => {
+  const confirmed = confirm("Are you sure you want to reset the map?");
+  if (confirmed) {
+    resetMap();
+  }
+});
+
 document.getElementById("importFile").addEventListener("change", (e) => {
   if (e.target.files.length > 0) {
     saveStateToUndo();
@@ -505,10 +513,14 @@ function engineFirstTime() {
           (paintBrushGroup !== null &&
             Object.keys(paintBrushGroup).length === 0)
         ) {
-          selectedTileIndex = 0;
+          selectedTileIndex =
+            loadedImages["tileset"].paint.tile[0].y *
+              (loadedImages["tileset"].image.width /
+                loadedImages["tileset"].size) +
+            loadedImages["tileset"].paint.tile[0].x;
           selectedTiles = {
-            startX: 0,
-            startY: 0,
+            startX: loadedImages["tileset"].paint.tile[0].x,
+            startY: loadedImages["tileset"].paint.tile[0].y,
             width: 1,
             height: 1,
           };
@@ -559,7 +571,7 @@ function engineFirstTime() {
         moveSelectionStart = null;
         break;
     }
-    paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} | Selected tile #${selectedTileIndex}`;
+    paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 🔻 | Selected tile #${selectedTileIndex}`;
   });
 
   document.addEventListener("keyup", (e) => {
@@ -576,7 +588,9 @@ function loadImages(callback) {
       extension: "png",
       size: 18,
       empty: {
-        type: "normal",
+        type: "null",
+      },
+      paint: {
         tile: [
           {
             x: 2,
@@ -901,6 +915,15 @@ function displayPalette() {
     loadedImages["tileset"].image.width * PALETTE_TILE_SIZE_SCALE;
   const scaledTilesetHeight =
     loadedImages["tileset"].image.height * PALETTE_TILE_SIZE_SCALE;
+  for (let y = 0; y < scaledTilesetHeight; y += paletteTileSize) {
+    for (let x = 0; x < scaledTilesetWidth; x += paletteTileSize) {
+      paletteContext.fillStyle =
+        (x / paletteTileSize + y / paletteTileSize) % 2 === 0
+          ? "#818181"
+          : "#c1c0c1";
+      paletteContext.fillRect(x, y, paletteTileSize, paletteTileSize);
+    }
+  }
   paletteContext.drawImage(
     loadedImages["tileset"].image,
     paletteScrollX * paletteTileSize,
@@ -1211,10 +1234,7 @@ function loadMap() {
   maxCanvasHeight = window.innerHeight;
   const savedMap = localStorage.getItem("map");
   if (!savedMap) {
-    mapMaxColumn = Math.ceil(window.innerWidth / tiles.size);
-    mapMaxRow = Math.ceil(window.innerHeight / tiles.size);
-    tiles.map = new Array(mapMaxColumn * mapMaxRow).fill(eraserBrush);
-    saveMap();
+    resetMap();
     return;
   }
   const data = JSON.parse(savedMap);
@@ -1311,6 +1331,13 @@ function exportMap() {
   a.download = "map.json";
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function resetMap() {
+  mapMaxColumn = Math.ceil(window.innerWidth / tiles.size);
+  mapMaxRow = Math.ceil(window.innerHeight / tiles.size);
+  tiles.map = new Array(mapMaxColumn * mapMaxRow).fill(eraserBrush);
+  saveMap();
 }
 
 function displayGameMap() {
