@@ -109,7 +109,8 @@ function engineFirstTime() {
 
   paletteHeader.addEventListener("mousedown", (e) => {
     isDragging = true;
-    paletteHeader.style.cursor = "grabbing";
+    if (paletteHeader.style.cursor === "grab")
+      paletteHeader.style.cursor = "grabbing";
     dragOffsetX = e.clientX - palette.offsetLeft;
     dragOffsetY = e.clientY - palette.offsetTop;
   });
@@ -131,7 +132,8 @@ function engineFirstTime() {
   document.addEventListener("mouseup", () => {
     if (isDragging) {
       isDragging = false;
-      paletteHeader.style.cursor = "grab";
+      if (paletteHeader.style.cursor === "grabbing")
+        paletteHeader.style.cursor = "grab";
     }
     if (isResizing) {
       isResizing = false;
@@ -245,7 +247,7 @@ function engineFirstTime() {
 
   document.addEventListener("mousemove", (e) => {
     if (e.target.id === "screen" && loadedImages["tileset"]) {
-      paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} | Selected tile #${selectedTileIndex}`;
+      paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 🔻 | Selected tile #${selectedTileIndex}`;
       gameMouseX = e.clientX;
       gameMouseY = e.clientY;
 
@@ -315,12 +317,14 @@ function engineFirstTime() {
   });
 
   palette.addEventListener("mousemove", (e) => {
+    const rect = palette.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left - paletteBorderWidth;
+    if (mouseX <= 150 && !resizingEdge) paletteHeader.style.cursor = "pointer";
+    else paletteHeader.style.cursor = "grab";
     if (isResizing) return;
 
     const paletteTileSize =
       loadedImages["tileset"].size * PALETTE_TILE_SIZE_SCALE;
-    const rect = palette.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left - paletteBorderWidth;
     let mouseY =
       e.clientY - rect.top - paletteBorderWidth - paletteHeader.clientHeight;
     const tilesPerRow =
@@ -332,8 +336,12 @@ function engineFirstTime() {
       (mouseY + paletteScrollY * 2 * paletteTileSize) / paletteTileSize
     );
     const tileIndex = tileY * tilesPerRow + tileX;
-    paletteHeader.innerText = `Ctrl + drag to scroll${
-      tileIndex < 0 ? "" : " | Tile #" + tileIndex
+    paletteHeader.innerText = `${loadedImages["tileset"].name}.${
+      loadedImages["tileset"].extension
+    } 🔻 | Ctrl + drag to scroll${
+      tileIndex < 0
+        ? ""
+        : " | Tile #" + tileIndex + " (" + tileX + ", " + tileY + ")"
     }`;
 
     if (isSelecting && selectionStart) {
@@ -568,7 +576,13 @@ function loadImages(callback) {
       extension: "png",
       size: 18,
       empty: {
-        type: "null",
+        type: "normal",
+        tile: [
+          {
+            x: 2,
+            y: 6,
+          },
+        ],
       },
       bg: {
         name: "bg",
@@ -582,6 +596,88 @@ function loadImages(callback) {
           },
         ],
       },
+    },
+    {
+      name: "characters",
+      extension: "png",
+      size: 24,
+      player: [
+        {
+          index: 0,
+          frames: [
+            {
+              animation: "idle",
+              x: 0,
+              y: 0,
+            },
+            {
+              animation: "move",
+              x: 1,
+              y: 0,
+            },
+          ],
+        },
+        {
+          index: 1,
+          frames: [
+            {
+              animation: "idle",
+              x: 2,
+              y: 0,
+            },
+            {
+              animation: "move",
+              x: 3,
+              y: 0,
+            },
+          ],
+        },
+        {
+          index: 2,
+          frames: [
+            {
+              animation: "idle",
+              x: 4,
+              y: 0,
+            },
+            {
+              animation: "move",
+              x: 5,
+              y: 0,
+            },
+          ],
+        },
+        {
+          index: 3,
+          frames: [
+            {
+              animation: "idle",
+              x: 6,
+              y: 0,
+            },
+            {
+              animation: "move",
+              x: 7,
+              y: 0,
+            },
+          ],
+        },
+        {
+          index: 4,
+          frames: [
+            {
+              animation: "idle",
+              x: 0,
+              y: 1,
+            },
+            {
+              animation: "move",
+              x: 1,
+              y: 1,
+            },
+          ],
+        },
+      ],
     },
   ];
   let loaded = 0;
@@ -705,7 +801,7 @@ function displayInfo() {
 function refreshEngine() {
   const tileset = loadedImages["tileset"];
   if (!tileset) return;
-  paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension}`;
+  paletteHeader.innerText = `${loadedImages["tileset"].name}.${loadedImages["tileset"].extension} 🔻`;
   const tilesetSize = tileset.size;
   eraserBrush =
     tileset.empty.type === "null"
@@ -906,7 +1002,7 @@ function displayTileSelections() {
 
   const paletteTileSize =
     loadedImages["tileset"].size * PALETTE_TILE_SIZE_SCALE;
-  const hoveredTileIndex = paletteHeader.innerText.split("Tile #")[1];
+  let hoveredTileIndex = paletteHeader.innerText.split("Tile #")[1];
   const tilesPerRow =
     loadedImages["tileset"].image.width / loadedImages["tileset"].size;
   tileDashOffset -= 0.3;
@@ -935,6 +1031,7 @@ function displayTileSelections() {
   }
 
   if (hoveredTileIndex && !isResizing && !isSelecting) {
+    hoveredTileIndex = hoveredTileIndex.split(" ")[0];
     const hoverX =
       (hoveredTileIndex % tilesPerRow) * paletteTileSize -
       paletteScrollX * 2 * paletteTileSize;
