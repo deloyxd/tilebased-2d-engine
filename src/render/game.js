@@ -76,6 +76,10 @@ export function displayGameMap() {
     state.loadedImages["tileset"].size;
   for (const layer of state.tiles.layers) {
     if (layer.visible === false) continue;
+    const previousAlpha = state.ctx.globalAlpha;
+    const layerIndex = +layer.name.toLowerCase().split("layer ")[1] - 1 || 0;
+    state.ctx.globalAlpha =
+      layerIndex === state.editing.activeLayerIndex ? 1 : 0.35;
     const layerTiles = layer.tiles;
     for (let i = 0; i < layerTiles.length; i++) {
       const tileIndex = layerTiles[i];
@@ -83,7 +87,8 @@ export function displayGameMap() {
       state.ctx.drawImage(
         state.loadedImages["tileset"].image,
         (tileIndex % tilesPerRow) * state.loadedImages["tileset"].size,
-        Math.floor(tileIndex / tilesPerRow) * state.loadedImages["tileset"].size,
+        Math.floor(tileIndex / tilesPerRow) *
+          state.loadedImages["tileset"].size,
         state.loadedImages["tileset"].size,
         state.loadedImages["tileset"].size,
         (i % state.mapMaxColumn) * state.tiles.size,
@@ -92,6 +97,6 @@ export function displayGameMap() {
         state.tiles.size
       );
     }
+    state.ctx.globalAlpha = previousAlpha;
   }
 }
-
