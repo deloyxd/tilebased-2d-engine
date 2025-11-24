@@ -25,7 +25,8 @@ export function displayPalette() {
   const { loadedImages } = state;
   const { PALETTE_TILE_SIZE_SCALE } = state.constants;
   const { context } = state.palette;
-  const paletteTileSize = loadedImages["tileset"].size * PALETTE_TILE_SIZE_SCALE;
+  const paletteTileSize =
+    loadedImages["tileset"].size * PALETTE_TILE_SIZE_SCALE;
   const scaledTilesetWidth =
     loadedImages["tileset"].image.width * PALETTE_TILE_SIZE_SCALE;
   const scaledTilesetHeight =
@@ -63,7 +64,11 @@ export function displayMoveSelection() {
   const tilesPerRow =
     loadedImages["tileset"].image.width / loadedImages["tileset"].size;
 
-  if (editing.isMoveSelecting && editing.moveSelectionEnd && !editing.isMoving) {
+  if (
+    editing.isMoveSelecting &&
+    editing.moveSelectionEnd &&
+    !editing.isMoving
+  ) {
     const startX = editing.moveSelectionStart
       ? Math.min(editing.moveSelectionStart.x, editing.moveSelectionEnd.x)
       : editing.moveSelectionEnd.x;
@@ -160,11 +165,9 @@ export function displayTileSelections() {
     const endX = Math.max(editing.selectionStart.x, editing.selectionEnd.x);
     const endY = Math.max(editing.selectionStart.y, editing.selectionEnd.y);
     const rectX =
-      startX * paletteTileSize -
-      editing.paletteScrollX * 2 * paletteTileSize;
+      startX * paletteTileSize - editing.paletteScrollX * 2 * paletteTileSize;
     const rectY =
-      startY * paletteTileSize -
-      editing.paletteScrollY * 2 * paletteTileSize;
+      startY * paletteTileSize - editing.paletteScrollY * 2 * paletteTileSize;
     const rectWidth = (endX - startX + 1) * paletteTileSize;
     const rectHeight = (endY - startY + 1) * paletteTileSize;
 
@@ -235,12 +238,8 @@ export function displayTileSelections() {
       !editing.isResizing &&
       state.palette.header.innerHTML.split("Selected tile #")[1];
     if (isOutsidePalette) {
-      const {
-        baseWidth,
-        baseHeight,
-        brushWidth,
-        brushHeight,
-      } = getBrushDimensions(editing);
+      const { baseWidth, baseHeight, brushWidth, brushHeight } =
+        getBrushDimensions(editing);
       const offsetX = Math.floor(brushWidth / 2);
       const offsetY = Math.floor(brushHeight / 2);
       if (editing.selectedTileIndex >= 0) {
@@ -354,4 +353,3 @@ function getBrushDimensions(editing) {
     brushHeight: baseHeight * brushSize,
   };
 }
-
