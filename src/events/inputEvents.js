@@ -2,11 +2,8 @@ import state from "../state.js";
 import { movePaletteWindow, resizePaletteWindow } from "../palette/palette.js";
 import { saveMap } from "../map/storage.js";
 import { saveStateToUndo, undo, redo } from "../map/history.js";
-import {
-  cycleActiveLayer,
-  getActiveLayerTiles,
-  getLayerStatusText,
-} from "../tiles/layers.js";
+import { cycleActiveLayer, getActiveLayerTiles } from "../tiles/layers.js";
+import { getTileTypeLabel } from "../tiles/types.js";
 
 export function registerInputEvents() {
   if (!state.palette.root || !state.palette.header) return;
@@ -182,7 +179,11 @@ export function registerInputEvents() {
 
   document.addEventListener("mousemove", (e) => {
     if (e.target.id === "screen" && state.loadedImages["tileset"]) {
-      updatePaletteHeader(`| Selected tile #${editing.selectedTileIndex}`);
+      updatePaletteHeader(
+        `| Selected tile #${editing.selectedTileIndex} | ${getTileTypeLabel(
+          editing.selectedTileIndex
+        )}`
+      );
       state.pointer.x = e.clientX;
       state.pointer.y = e.clientY;
 
@@ -192,11 +193,13 @@ export function registerInputEvents() {
         editing.moveSelectionEnd = { x: tileX, y: tileY };
       }
     }
-    if (editing.isDragging)
+    if (editing.isDragging) {
+      state.palette.header.style.cursor = "grabbing";
       movePaletteWindow(
         e.clientX - editing.dragOffsetX,
         e.clientY - editing.dragOffsetY
       );
+    }
     if (editing.isResizing && state.palette.rect) {
       const minSize = 100;
       const maxWidth = state.loadedImages["tileset"].image.width * 2;
@@ -227,17 +230,13 @@ export function registerInputEvents() {
           ),
           minSize
         );
-        state.palette.root.style.left = `${
-          Math.min(
-            Math.max(
-              e.clientX,
-              state.palette.rect.right -
-                maxWidth -
-                state.palette.borderWidth * 2
-            ),
-            state.palette.rect.right - minSize
-          )
-        }px`;
+        state.palette.root.style.left = `${Math.min(
+          Math.max(
+            e.clientX,
+            state.palette.rect.right - maxWidth - state.palette.borderWidth * 2
+          ),
+          state.palette.rect.right - minSize
+        )}px`;
       }
       if (editing.resizingEdge.includes("top")) {
         newHeight = Math.max(
@@ -249,17 +248,15 @@ export function registerInputEvents() {
           ),
           minSize
         );
-        state.palette.root.style.top = `${
-          Math.min(
-            Math.max(
-              e.clientY,
-              state.palette.rect.bottom -
-                maxHeight -
-                state.palette.borderWidth * 2
-            ),
-            state.palette.rect.bottom - minSize
-          )
-        }px`;
+        state.palette.root.style.top = `${Math.min(
+          Math.max(
+            e.clientY,
+            state.palette.rect.bottom -
+              maxHeight -
+              state.palette.borderWidth * 2
+          ),
+          state.palette.rect.bottom - minSize
+        )}px`;
       }
       resizePaletteWindow(newWidth, newHeight);
     }
@@ -295,8 +292,10 @@ export function registerInputEvents() {
     const tileDescriptor =
       tileIndex < 0
         ? ""
-        : ` | Tile #${tileIndex} (${tileX}, ${tileY})`;
-    updatePaletteHeader(`| Ctrl + drag to scroll${tileDescriptor}`);
+        : ` | Tile #${tileIndex} (${tileX}, ${tileY}) | ${getTileTypeLabel(
+            tileIndex
+          )}`;
+    updatePaletteHeader(`${tileDescriptor}`);
 
     if (editing.isSelecting && editing.selectionStart) {
       editing.selectionEnd = { x: tileX, y: tileY };
@@ -413,7 +412,11 @@ export function registerInputEvents() {
     if (e.key === "," || e.key === ".") {
       e.preventDefault();
       cycleActiveLayer(e.key === "," ? -1 : 1);
-      updatePaletteHeader(`| Selected tile #${editing.selectedTileIndex}`);
+      updatePaletteHeader(
+        `| Selected tile #${editing.selectedTileIndex} | ${getTileTypeLabel(
+          editing.selectedTileIndex
+        )}`
+      );
       return;
     }
     if (e.key === "/") {
@@ -525,7 +528,11 @@ export function registerInputEvents() {
         editing.moveSelectedLayerIndex = null;
         break;
     }
-    updatePaletteHeader(`| Selected tile #${editing.selectedTileIndex}`);
+    updatePaletteHeader(
+      `| Selected tile #${editing.selectedTileIndex} | ${getTileTypeLabel(
+        editing.selectedTileIndex
+      )}`
+    );
   });
 
   document.addEventListener("keyup", (e) => {
@@ -556,16 +563,12 @@ function resizeCursor(edge) {
 
 function updatePaletteHeader(extraText = "") {
   if (!state.loadedImages["tileset"] || !state.palette.header) return;
-  const layerLabel = state.tiles.layers.length
-    ? ` | ${getLayerStatusText()}`
-    : "";
   state.palette.header.innerHTML = `
       ${state.loadedImages["tileset"].name}.${state.loadedImages["tileset"].extension}
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
           <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
           <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-      ${extraText}${layerLabel}
+      ${extraText}
     `;
 }
-

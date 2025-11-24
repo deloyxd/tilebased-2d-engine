@@ -5,11 +5,7 @@ import { registerInputEvents } from "../events/inputEvents.js";
 import { loadImages } from "../assets/images.js";
 import { loadMap, saveMap } from "../map/storage.js";
 import { saveStateToUndo } from "../map/history.js";
-import {
-  displayGame,
-  displayInfo,
-  displayLoading,
-} from "../render/game.js";
+import { displayGame, displayInfo, displayLoading } from "../render/game.js";
 import {
   displayPalette,
   displayTileSelections,
@@ -17,7 +13,7 @@ import {
   movePaletteWindow,
   resizePaletteWindow,
 } from "../palette/palette.js";
-import { resizeLayers, getLayerStatusText } from "../tiles/layers.js";
+import { resizeLayers } from "../tiles/layers.js";
 
 export function startEngine() {
   initDomReferences();
@@ -69,7 +65,10 @@ function clearScreen() {
       state.maxCanvasHeight = state.canvas.height;
     const newMapMaxColumn = Math.ceil(state.maxCanvasWidth / state.tiles.size);
     const newMapMaxRow = Math.ceil(state.maxCanvasHeight / state.tiles.size);
-    if (newMapMaxColumn > state.mapMaxColumn || newMapMaxRow > state.mapMaxRow) {
+    if (
+      newMapMaxColumn > state.mapMaxColumn ||
+      newMapMaxRow > state.mapMaxRow
+    ) {
       resizeLayers(newMapMaxColumn, newMapMaxRow);
       state.mapMaxColumn = newMapMaxColumn;
       state.mapMaxRow = newMapMaxRow;
@@ -112,7 +111,6 @@ function refreshEngine() {
       <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
       <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    | ${getLayerStatusText()}
   `;
   const tilesetSize = tileset.size;
   state.editing.eraserBrush =
@@ -189,4 +187,3 @@ function refreshEngine() {
     );
   }
 }
-
