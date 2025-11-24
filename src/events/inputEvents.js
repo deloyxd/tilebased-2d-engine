@@ -1,5 +1,10 @@
 import state from "../state.js";
-import { movePaletteWindow, resizePaletteWindow } from "../palette/palette.js";
+import {
+  movePaletteWindow,
+  resizePaletteWindow,
+  panPaletteTileset,
+  snapPaletteScrollToEdge,
+} from "../palette/palette.js";
 import { saveMap } from "../map/storage.js";
 import { saveStateToUndo, undo, redo } from "../map/history.js";
 import { cycleActiveLayer, getActiveLayerTiles } from "../tiles/layers.js";
@@ -44,6 +49,7 @@ export function registerInputEvents() {
       editing.isResizing = false;
       editing.resizingEdge = null;
       state.palette.rect = null;
+      snapPaletteScrollToEdge();
     }
     if (editing.isScrolling) {
       editing.isScrolling = false;
@@ -261,6 +267,7 @@ export function registerInputEvents() {
         )}px`;
       }
       resizePaletteWindow(newWidth, newHeight);
+      snapPaletteScrollToEdge(editing.resizingEdge || "");
     }
   });
 
@@ -285,10 +292,10 @@ export function registerInputEvents() {
       state.loadedImages["tileset"].image.width /
       state.loadedImages["tileset"].size;
     const tileX = Math.floor(
-      (mouseX + editing.paletteScrollX * 2 * paletteTileSize) / paletteTileSize
+      (mouseX + editing.paletteScrollX) / paletteTileSize
     );
     const tileY = Math.floor(
-      (mouseY + editing.paletteScrollY * 2 * paletteTileSize) / paletteTileSize
+      (mouseY + editing.paletteScrollY) / paletteTileSize
     );
     const tileIndex = tileY * tilesPerRow + tileX;
     const tileDescriptor =
@@ -308,36 +315,7 @@ export function registerInputEvents() {
       const dy = e.clientY - editing.paletteScrollOrigin.y;
       editing.paletteScrollOrigin.x = e.clientX;
       editing.paletteScrollOrigin.y = e.clientY;
-      const scaledTilesetWidth =
-        state.loadedImages["tileset"].image.width *
-        state.constants.PALETTE_TILE_SIZE_SCALE;
-      const scaledTilesetHeight =
-        state.loadedImages["tileset"].image.height *
-        state.constants.PALETTE_TILE_SIZE_SCALE;
-      const maxScrollX =
-        (scaledTilesetWidth - state.palette.canvas.clientWidth) /
-        paletteTileSize /
-        2;
-      const maxScrollY =
-        (scaledTilesetHeight - state.palette.canvas.clientHeight) /
-        paletteTileSize /
-        2;
-      editing.paletteScrollX = Math.max(
-        0,
-        Math.min(
-          editing.paletteScrollX -
-            dx * state.constants.PALETTE_SCROLL_SPEED * 0.0001,
-          maxScrollX
-        )
-      );
-      editing.paletteScrollY = Math.max(
-        0,
-        Math.min(
-          editing.paletteScrollY -
-            dy * state.constants.PALETTE_SCROLL_SPEED * 0.0001,
-          maxScrollY
-        )
-      );
+      panPaletteTileset(dx, dy);
       return;
     }
 
@@ -382,12 +360,10 @@ export function registerInputEvents() {
           state.palette.borderWidth -
           state.palette.header.clientHeight;
         const tileX = Math.floor(
-          (mouseX + editing.paletteScrollX * 2 * paletteTileSize) /
-            paletteTileSize
+          (mouseX + editing.paletteScrollX) / paletteTileSize
         );
         const tileY = Math.floor(
-          (mouseY + editing.paletteScrollY * 2 * paletteTileSize) /
-            paletteTileSize
+          (mouseY + editing.paletteScrollY) / paletteTileSize
         );
         editing.selectionStart = { x: tileX, y: tileY };
         editing.selectionEnd = { x: tileX, y: tileY };

@@ -36,6 +36,11 @@ export function displayInfo() {
   state.ctx.fillText(`[,] Prev layer`, 15, 390);
   state.ctx.fillText(`[.] Next layer`, 15, 420);
   state.ctx.fillText(`[/] Toggle layer opacity`, 15, 450);
+  
+  state.ctx.fillText(`Palette:`, 15, 510);
+  state.ctx.fillText(`Movable window`, 15, 540);
+  state.ctx.fillText(`Resizable window`, 15, 570);
+  state.ctx.fillText(`Ctrl + drag to scroll inside window`, 15, 600);
 }
 
 export function displayBackground() {

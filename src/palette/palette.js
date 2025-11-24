@@ -18,38 +18,57 @@ export function resizePaletteWindow(width = null, height = null) {
     state.palette.canvas.height =
       state.palette.root.clientHeight - state.palette.header.clientHeight;
   }
+  clampPaletteScroll();
 }
 
 export function displayPalette() {
   if (!state.loadedImages["tileset"] || !state.palette.context) return;
   const { loadedImages } = state;
   const { PALETTE_TILE_SIZE_SCALE } = state.constants;
-  const { context } = state.palette;
+  const { context, canvas } = state.palette;
   const paletteTileSize =
     loadedImages["tileset"].size * PALETTE_TILE_SIZE_SCALE;
   const scaledTilesetWidth =
     loadedImages["tileset"].image.width * PALETTE_TILE_SIZE_SCALE;
   const scaledTilesetHeight =
     loadedImages["tileset"].image.height * PALETTE_TILE_SIZE_SCALE;
+  const viewportWidth = canvas.width;
+  const viewportHeight = canvas.height;
+  const scrollX = state.editing.paletteScrollX;
+  const scrollY = state.editing.paletteScrollY;
 
-  for (let y = 0; y < scaledTilesetHeight; y += paletteTileSize) {
-    for (let x = 0; x < scaledTilesetWidth; x += paletteTileSize) {
+  const offsetX =
+    ((scrollX % paletteTileSize) + paletteTileSize) % paletteTileSize;
+  const offsetY =
+    ((scrollY % paletteTileSize) + paletteTileSize) % paletteTileSize;
+
+  for (
+    let y = -offsetY;
+    y < viewportHeight + paletteTileSize;
+    y += paletteTileSize
+  ) {
+    for (
+      let x = -offsetX;
+      x < viewportWidth + paletteTileSize;
+      x += paletteTileSize
+    ) {
+      const tileColumn = Math.floor((x + scrollX) / paletteTileSize);
+      const tileRow = Math.floor((y + scrollY) / paletteTileSize);
       context.fillStyle =
-        (x / paletteTileSize + y / paletteTileSize) % 2 === 0
-          ? "#818181"
-          : "#c1c0c1";
+        (tileColumn + tileRow) % 2 === 0 ? "#818181" : "#c1c0c1";
+
       context.fillRect(x, y, paletteTileSize, paletteTileSize);
     }
   }
 
   context.drawImage(
     loadedImages["tileset"].image,
-    state.editing.paletteScrollX * paletteTileSize,
-    state.editing.paletteScrollY * paletteTileSize,
+    0,
+    0,
     loadedImages["tileset"].image.width,
     loadedImages["tileset"].image.height,
-    0,
-    0,
+    -scrollX,
+    -scrollY,
     scaledTilesetWidth,
     scaledTilesetHeight
   );
@@ -154,6 +173,8 @@ export function displayTileSelections() {
 
   const paletteTileSize =
     loadedImages["tileset"].size * state.constants.PALETTE_TILE_SIZE_SCALE;
+  const scrollOffsetX = editing.paletteScrollX;
+  const scrollOffsetY = editing.paletteScrollY;
   let hoveredTileIndex = state.palette.header.innerHTML.split("Tile #")[1];
   const tilesPerRow =
     loadedImages["tileset"].image.width / loadedImages["tileset"].size;
@@ -164,10 +185,8 @@ export function displayTileSelections() {
     const startY = Math.min(editing.selectionStart.y, editing.selectionEnd.y);
     const endX = Math.max(editing.selectionStart.x, editing.selectionEnd.x);
     const endY = Math.max(editing.selectionStart.y, editing.selectionEnd.y);
-    const rectX =
-      startX * paletteTileSize - editing.paletteScrollX * 2 * paletteTileSize;
-    const rectY =
-      startY * paletteTileSize - editing.paletteScrollY * 2 * paletteTileSize;
+    const rectX = startX * paletteTileSize - scrollOffsetX;
+    const rectY = startY * paletteTileSize - scrollOffsetY;
     const rectWidth = (endX - startX + 1) * paletteTileSize;
     const rectHeight = (endY - startY + 1) * paletteTileSize;
 
@@ -185,11 +204,10 @@ export function displayTileSelections() {
   if (hoveredTileIndex && !editing.isResizing && !editing.isSelecting) {
     hoveredTileIndex = hoveredTileIndex.split(" ")[0];
     const hoverX =
-      (hoveredTileIndex % tilesPerRow) * paletteTileSize -
-      editing.paletteScrollX * 2 * paletteTileSize;
+      (hoveredTileIndex % tilesPerRow) * paletteTileSize - scrollOffsetX;
     const hoverY =
       Math.floor(hoveredTileIndex / tilesPerRow) * paletteTileSize -
-      editing.paletteScrollY * 2 * paletteTileSize;
+      scrollOffsetY;
     state.palette.context.save();
     state.palette.context.strokeStyle = "white";
     state.palette.context.lineWidth = 1;
@@ -212,11 +230,9 @@ export function displayTileSelections() {
 
     if (editing.selectedTileIndex >= 0) {
       const selectX =
-        editing.selectedTiles.startX * paletteTileSize -
-        editing.paletteScrollX * 2 * paletteTileSize;
+        editing.selectedTiles.startX * paletteTileSize - scrollOffsetX;
       const selectY =
-        editing.selectedTiles.startY * paletteTileSize -
-        editing.paletteScrollY * 2 * paletteTileSize;
+        editing.selectedTiles.startY * paletteTileSize - scrollOffsetY;
       const selectWidth = editing.selectedTiles.width * paletteTileSize;
       const selectHeight = editing.selectedTiles.height * paletteTileSize;
 
@@ -352,4 +368,62 @@ function getBrushDimensions(editing) {
     brushWidth: baseWidth * brushSize,
     brushHeight: baseHeight * brushSize,
   };
+}
+
+export function panPaletteTileset(deltaX = 0, deltaY = 0) {
+  if (!state.loadedImages["tileset"]) return;
+  const dragFactor =
+    state.constants.PALETTE_SCROLL_SPEED > 0
+      ? state.constants.PALETTE_SCROLL_SPEED / 200
+      : 1;
+  state.editing.paletteScrollX -= deltaX * dragFactor;
+  state.editing.paletteScrollY -= deltaY * dragFactor;
+  clampPaletteScroll();
+}
+
+export function snapPaletteScrollToEdge(edge = "") {
+  const normalizedEdge = edge || "";
+  const options = {};
+  if (normalizedEdge.includes("left")) options.horizontalSnap = "left";
+  else if (normalizedEdge.includes("right")) options.horizontalSnap = "right";
+  if (normalizedEdge.includes("top")) options.verticalSnap = "top";
+  else if (normalizedEdge.includes("bottom")) options.verticalSnap = "bottom";
+  clampPaletteScroll(options);
+}
+
+function clampPaletteScroll({
+  horizontalSnap = null,
+  verticalSnap = null,
+} = {}) {
+  const { maxScrollX, maxScrollY } = getPaletteScrollBoundsPx();
+  const editing = state.editing;
+
+  if (horizontalSnap === "left") editing.paletteScrollX = 0;
+  else if (horizontalSnap === "right") editing.paletteScrollX = maxScrollX;
+  else editing.paletteScrollX = clamp(editing.paletteScrollX, 0, maxScrollX);
+
+  if (verticalSnap === "top") editing.paletteScrollY = 0;
+  else if (verticalSnap === "bottom") editing.paletteScrollY = maxScrollY;
+  else editing.paletteScrollY = clamp(editing.paletteScrollY, 0, maxScrollY);
+}
+
+function getPaletteScrollBoundsPx() {
+  const tileset = state.loadedImages["tileset"];
+  if (!tileset || !state.palette.canvas) {
+    return { maxScrollX: 0, maxScrollY: 0 };
+  }
+  const scaledTilesetWidth =
+    tileset.image.width * state.constants.PALETTE_TILE_SIZE_SCALE;
+  const scaledTilesetHeight =
+    tileset.image.height * state.constants.PALETTE_TILE_SIZE_SCALE;
+  const viewportWidth = state.palette.canvas.width;
+  const viewportHeight = state.palette.canvas.height;
+  return {
+    maxScrollX: Math.max(0, scaledTilesetWidth - viewportWidth),
+    maxScrollY: Math.max(0, scaledTilesetHeight - viewportHeight),
+  };
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }
