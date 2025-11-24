@@ -1,0 +1,88 @@
+import state from "../state.js";
+
+export function displayLoading() {
+  if (state.ctx.fillStyle !== "black") state.ctx.fillStyle = "black";
+  if (state.ctx.font !== "bold 20px monospace")
+    state.ctx.font = "bold 20px monospace";
+  state.ctx.fillText(state.loadingMessage, 15, state.canvas.height - 20);
+}
+
+export function displayGame() {
+  displayBackground();
+  displayGameMap();
+}
+
+export function displayInfo() {
+  if (state.ctx.fillStyle !== "black") state.ctx.fillStyle = "black";
+  state.ctx.font = "bold 20px monospace";
+  state.ctx.fillText(`FPS: ${state.fps}`, 15, 30);
+  state.ctx.font = "16px monospace";
+  state.ctx.fillText(`[B]rush`, 15, 60);
+  state.ctx.fillText(`[E]raser`, 15, 90);
+  state.ctx.fillText(`[M]ove`, 15, 120);
+  state.ctx.fillText(`[D]eselect`, 15, 150);
+  state.ctx.fillText(`[Ctrl + Z] Undo`, 15, 180);
+  state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 210);
+}
+
+export function displayBackground() {
+  if (state.loadedImages["tileset"].bg.type === "color") {
+    state.ctx.fillStyle = state.loadedImages["tileset"].bg.tile[0].hex;
+    state.ctx.fillRect(0, 0, state.canvas.width, state.canvas.height);
+    return;
+  }
+  if (state.loadedImages["tileset"].bg.type === "source") {
+    if (!state.loadedImages["tileset"].bg.image) return;
+    for (const tile of state.tiles.bg) {
+      state.ctx.drawImage(
+        state.loadedImages["tileset"].bg.image,
+        state.loadedImages["tileset"].bg.tile[0].x *
+          state.loadedImages["tileset"].bg.size,
+        state.loadedImages["tileset"].bg.tile[0].y *
+          state.loadedImages["tileset"].bg.size,
+        state.loadedImages["tileset"].bg.size,
+        state.loadedImages["tileset"].bg.size,
+        tile.desX,
+        tile.desY,
+        state.tiles.size,
+        state.tiles.size
+      );
+    }
+    return;
+  }
+  for (const tile of state.tiles.bg) {
+    state.ctx.drawImage(
+      state.loadedImages["tileset"].image,
+      tile.srcX,
+      tile.srcY,
+      state.loadedImages["tileset"].size,
+      state.loadedImages["tileset"].size,
+      tile.desX,
+      tile.desY,
+      state.tiles.size,
+      state.tiles.size
+    );
+  }
+}
+
+export function displayGameMap() {
+  for (let i = 0; i < state.tiles.map.length; i++) {
+    const tileIndex = state.tiles.map[i];
+    if (tileIndex === state.editing.eraserBrush) continue;
+    const tilesPerRow =
+      state.loadedImages["tileset"].image.width /
+      state.loadedImages["tileset"].size;
+    state.ctx.drawImage(
+      state.loadedImages["tileset"].image,
+      (tileIndex % tilesPerRow) * state.loadedImages["tileset"].size,
+      Math.floor(tileIndex / tilesPerRow) * state.loadedImages["tileset"].size,
+      state.loadedImages["tileset"].size,
+      state.loadedImages["tileset"].size,
+      (i % state.mapMaxColumn) * state.tiles.size,
+      Math.floor(i / state.mapMaxColumn) * state.tiles.size,
+      state.tiles.size,
+      state.tiles.size
+    );
+  }
+}
+
