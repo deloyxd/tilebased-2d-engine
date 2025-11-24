@@ -5,6 +5,8 @@ import { saveStateToUndo, undo, redo } from "../map/history.js";
 import { cycleActiveLayer, getActiveLayerTiles } from "../tiles/layers.js";
 import { getTileTypeLabel } from "../tiles/types.js";
 
+let lastPaletteHeaderExtraText = "";
+
 export function registerInputEvents() {
   if (!state.palette.root || !state.palette.header) return;
   const editing = state.editing;
@@ -423,6 +425,11 @@ export function registerInputEvents() {
       editing.isOpacityEnabled = !editing.isOpacityEnabled;
       return;
     }
+    if (e.key === "[" || e.key === "]") {
+      e.preventDefault();
+      adjustBrushSize(e.key === "[" ? -1 : 1);
+      return;
+    }
     if (!["e", "b", "m", "d", "Escape"].includes(e.key)) return;
     editing.isErasing = false;
     switch (e.key) {
@@ -561,14 +568,32 @@ function resizeCursor(edge) {
   }
 }
 
-function updatePaletteHeader(extraText = "") {
+function updatePaletteHeader(extraText) {
+  if (extraText !== undefined) {
+    lastPaletteHeaderExtraText = extraText;
+  } else {
+    extraText = lastPaletteHeaderExtraText;
+  }
   if (!state.loadedImages["tileset"] || !state.palette.header) return;
+  const brushInfo = ` | Brush size: ${state.editing.brushSize}`;
   state.palette.header.innerHTML = `
       ${state.loadedImages["tileset"].name}.${state.loadedImages["tileset"].extension}
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
           <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
           <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-      ${extraText}
+      ${extraText || ""}${brushInfo}
     `;
+}
+
+function adjustBrushSize(delta) {
+  const { BRUSH_MIN_SIZE, BRUSH_MAX_SIZE } = state.constants;
+  const editing = state.editing;
+  const nextSize = Math.min(
+    BRUSH_MAX_SIZE,
+    Math.max(BRUSH_MIN_SIZE, editing.brushSize + delta)
+  );
+  if (nextSize === editing.brushSize) return;
+  editing.brushSize = nextSize;
+  updatePaletteHeader();
 }

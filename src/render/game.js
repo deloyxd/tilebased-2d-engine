@@ -20,14 +20,22 @@ export function displayInfo() {
   state.ctx.font = "16px monospace";
   state.ctx.fillText(`[B]rush`, 15, 60);
   state.ctx.fillText(`[E]raser`, 15, 90);
-  state.ctx.fillText(`[M]ove`, 15, 120);
-  state.ctx.fillText(`[D]eselect`, 15, 150);
-  state.ctx.fillText(`[Ctrl + Z] Undo`, 15, 180);
-  state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 210);
-  state.ctx.fillText(`[,] Prev layer`, 15, 240);
-  state.ctx.fillText(`[.] Next layer`, 15, 270);
-  state.ctx.fillText(`[/] Toggle layer opacity`, 15, 300);
-  state.ctx.fillText(getLayerStatusText(), 15, 330);
+  state.ctx.fillText(`'[' or ']' Adjust brush size`, 15, 120);
+  state.ctx.fillText(
+    `Brush size: ${state.editing.brushSize}/${state.constants.BRUSH_MAX_SIZE}`,
+    15,
+    150
+  );
+
+  state.ctx.fillText(`[M]ove`, 15, 210);
+  state.ctx.fillText(`[D]eselect`, 15, 240);
+  state.ctx.fillText(`[Ctrl + Z] Undo`, 15, 270);
+  state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 300);
+
+  state.ctx.fillText(getLayerStatusText(), 15, 360);
+  state.ctx.fillText(`[,] Prev layer`, 15, 390);
+  state.ctx.fillText(`[.] Next layer`, 15, 420);
+  state.ctx.fillText(`[/] Toggle layer opacity`, 15, 450);
 }
 
 export function displayBackground() {
@@ -79,8 +87,9 @@ export function displayGameMap() {
     if (layer.visible === false) continue;
     const previousAlpha = state.ctx.globalAlpha;
     const layerIndex = +layer.name.toLowerCase().split("layer ")[1] - 1 || 0;
-    if (state.editing.isOpacityEnabled) state.ctx.globalAlpha =
-      layerIndex === state.editing.activeLayerIndex ? 1 : 0.35;
+    if (state.editing.isOpacityEnabled)
+      state.ctx.globalAlpha =
+        layerIndex === state.editing.activeLayerIndex ? 1 : 0.35;
     const layerTiles = layer.tiles;
     for (let i = 0; i < layerTiles.length; i++) {
       const tileIndex = layerTiles[i];

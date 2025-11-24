@@ -133,7 +133,7 @@ export function cloneLayers(layers = state.tiles.layers) {
 
 export function getLayerStatusText() {
   if (!state.tiles.layers.length) return "Layer 0/0";
-  return `Layer ${state.editing.activeLayerIndex + 1}/${
+  return `Layer: ${state.editing.activeLayerIndex + 1}/${
     state.tiles.layers.length
   }`;
 }

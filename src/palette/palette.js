@@ -235,13 +235,19 @@ export function displayTileSelections() {
       !editing.isResizing &&
       state.palette.header.innerHTML.split("Selected tile #")[1];
     if (isOutsidePalette) {
-      const offsetX = Math.floor(editing.selectedTiles.width / 2);
-      const offsetY = Math.floor(editing.selectedTiles.height / 2);
+      const {
+        baseWidth,
+        baseHeight,
+        brushWidth,
+        brushHeight,
+      } = getBrushDimensions(editing);
+      const offsetX = Math.floor(brushWidth / 2);
+      const offsetY = Math.floor(brushHeight / 2);
       if (editing.selectedTileIndex >= 0) {
-        for (let h = 0; h < editing.selectedTiles.height; h++) {
-          for (let w = 0; w < editing.selectedTiles.width; w++) {
-            const tileX = editing.selectedTiles.startX + w;
-            const tileY = editing.selectedTiles.startY + h;
+        for (let h = 0; h < brushHeight; h++) {
+          for (let w = 0; w < brushWidth; w++) {
+            const tileX = editing.selectedTiles.startX + (w % baseWidth);
+            const tileY = editing.selectedTiles.startY + (h % baseHeight);
             const tileIdx = tileY * tilesPerRow + tileX;
 
             state.ctx.drawImage(
@@ -269,8 +275,8 @@ export function displayTileSelections() {
       state.ctx.strokeRect(
         (Math.floor(state.pointer.x / tiles.size) - offsetX) * tiles.size,
         (Math.floor(state.pointer.y / tiles.size) - offsetY) * tiles.size,
-        tiles.size * editing.selectedTiles.width,
-        tiles.size * editing.selectedTiles.height
+        tiles.size * brushWidth,
+        tiles.size * brushHeight
       );
       state.ctx.restore();
 
@@ -285,8 +291,8 @@ export function displayTileSelections() {
 
       if (editing.isReplacing) {
         if (importContainer) importContainer.style.display = "none";
-        for (let h = 0; h < editing.selectedTiles.height; h++) {
-          for (let w = 0; w < editing.selectedTiles.width; w++) {
+        for (let h = 0; h < brushHeight; h++) {
+          for (let w = 0; w < brushWidth; w++) {
             const tileX = startTileX + w;
             const tileY = startTileY + h;
             const replacingIndex = tileY * state.mapMaxColumn + tileX;
@@ -298,12 +304,12 @@ export function displayTileSelections() {
               tileY < state.mapMaxRow &&
               editing.replaceState.state === 1
             ) {
-              const sourceTileX = editing.selectedTiles.startX + w;
-              const sourceTileY = editing.selectedTiles.startY + h;
+              const patternX = editing.selectedTiles.startX + (w % baseWidth);
+              const patternY = editing.selectedTiles.startY + (h % baseHeight);
               const sourceTileIdx =
                 editing.selectedTileIndex >= 0
-                  ? sourceTileY * tilesPerRow + sourceTileX
-                  : -1;
+                  ? patternY * tilesPerRow + patternX
+                  : editing.eraserBrush;
               if (activeLayerTiles[replacingIndex] !== sourceTileIdx) {
                 if (!hasChanges) {
                   hasChanges = true;
@@ -335,5 +341,17 @@ export function displayTileSelections() {
       }
     }
   }
+}
+
+function getBrushDimensions(editing) {
+  const baseWidth = Math.max(editing.selectedTiles.width || 1, 1);
+  const baseHeight = Math.max(editing.selectedTiles.height || 1, 1);
+  const brushSize = Math.max(editing.brushSize || 1, 1);
+  return {
+    baseWidth,
+    baseHeight,
+    brushWidth: baseWidth * brushSize,
+    brushHeight: baseHeight * brushSize,
+  };
 }
 
