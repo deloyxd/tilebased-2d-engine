@@ -1,5 +1,6 @@
 import state from "../state.js";
 import { saveMap } from "./storage.js";
+import { initializeLayersFromData } from "../tiles/layers.js";
 
 export function importMap(file) {
   const reader = new FileReader();
@@ -8,7 +9,20 @@ export function importMap(file) {
     const data = JSON.parse(reader.result);
     state.mapMaxColumn = data.mapMaxColumn;
     state.mapMaxRow = data.mapMaxRow;
-    state.tiles.map = data.tiles;
+    const legacyLayer = data.tiles
+      ? [
+          {
+            id: "legacy-layer",
+            name: "Layer 1",
+            visible: true,
+            tiles: data.tiles,
+          },
+        ]
+      : [];
+    initializeLayersFromData(
+      data.layers && data.layers.length ? data.layers : legacyLayer,
+      data.activeLayerIndex ?? 0
+    );
     saveMap();
   };
 }
@@ -17,7 +31,10 @@ export function exportMap() {
   const data = {
     mapMaxColumn: state.mapMaxColumn,
     mapMaxRow: state.mapMaxRow,
-    tiles: state.tiles.map,
+    layers: state.tiles.layers,
+    activeLayerIndex: state.editing.activeLayerIndex,
+    tiles:
+      state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || [],
   };
   const blob = new Blob([JSON.stringify(data)], {
     type: "application/json",

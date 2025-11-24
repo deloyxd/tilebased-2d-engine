@@ -13,6 +13,7 @@ const state = {
     bg: [],
     empty: [-1],
     map: [],
+    layers: [],
   },
   mapMaxRow: 0,
   mapMaxColumn: 0,
@@ -59,12 +60,15 @@ const state = {
     moveSelectionStart: null,
     moveSelectionEnd: null,
     moveTilesData: [],
+    activeLayerIndex: 0,
+    moveSelectedLayerIndex: null,
   },
   constants: {
     PALETTE_TILE_SIZE_SCALE: 2,
     PALETTE_SCROLL_SPEED: 200,
     RESIZE_MARGIN: 6,
     MAX_UNDO_STEPS: 10000,
+    DEFAULT_LAYER_COUNT: 3,
   },
   history: {
     undoStack: [],

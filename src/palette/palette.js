@@ -1,6 +1,7 @@
 import state from "../state.js";
 import { saveMap } from "../map/storage.js";
 import { saveStateToUndo } from "../map/history.js";
+import { getActiveLayerTiles } from "../tiles/layers.js";
 
 export function movePaletteWindow(x, y) {
   state.palette.root.style.left = `${x}px`;
@@ -143,6 +144,7 @@ export function displayTileSelections() {
   if (!state.loadedImages["tileset"] || !state.palette.header) return;
   const { loadedImages, tiles } = state;
   const editing = state.editing;
+  const activeLayerTiles = getActiveLayerTiles();
   if (editing.isMoveSelecting || editing.isMoving) return;
 
   const paletteTileSize =
@@ -302,7 +304,7 @@ export function displayTileSelections() {
                 editing.selectedTileIndex >= 0
                   ? sourceTileY * tilesPerRow + sourceTileX
                   : -1;
-              if (state.tiles.map[replacingIndex] !== sourceTileIdx) {
+              if (activeLayerTiles[replacingIndex] !== sourceTileIdx) {
                 if (!hasChanges) {
                   hasChanges = true;
                   saveStateToUndo();
@@ -311,7 +313,7 @@ export function displayTileSelections() {
                   editing.isErasing ||
                   !state.tiles.empty.includes(sourceTileIdx)
                 ) {
-                  state.tiles.map[replacingIndex] = sourceTileIdx;
+                  activeLayerTiles[replacingIndex] = sourceTileIdx;
                 }
                 saveMap();
               }

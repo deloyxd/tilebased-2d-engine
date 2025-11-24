@@ -2,6 +2,11 @@ import state from "../state.js";
 import { movePaletteWindow, resizePaletteWindow } from "../palette/palette.js";
 import { saveMap } from "../map/storage.js";
 import { saveStateToUndo, undo, redo } from "../map/history.js";
+import {
+  cycleActiveLayer,
+  getActiveLayerTiles,
+  getLayerStatusText,
+} from "../tiles/layers.js";
 
 export function registerInputEvents() {
   if (!state.palette.root || !state.palette.header) return;
@@ -113,6 +118,7 @@ export function registerInputEvents() {
       };
 
       editing.moveTilesData = [];
+      const activeLayerTiles = getActiveLayerTiles();
       for (let h = 0; h < editing.moveSelectedTiles.height; h++) {
         for (let w = 0; w < editing.moveSelectedTiles.width; w++) {
           const tileX = startX + w;
@@ -124,13 +130,14 @@ export function registerInputEvents() {
             tileY < state.mapMaxRow
           ) {
             const mapIndex = tileY * state.mapMaxColumn + tileX;
-            editing.moveTilesData.push(state.tiles.map[mapIndex]);
-            state.tiles.map[mapIndex] = editing.eraserBrush;
+            editing.moveTilesData.push(activeLayerTiles[mapIndex]);
+            activeLayerTiles[mapIndex] = editing.eraserBrush;
           }
         }
       }
 
       editing.isMoving = true;
+      editing.moveSelectedLayerIndex = state.editing.activeLayerIndex;
       editing.moveSelectionStart = null;
       editing.moveSelectionEnd = null;
     } else if (editing.isMoving) {
@@ -140,6 +147,7 @@ export function registerInputEvents() {
       const startTileY = Math.floor(state.pointer.y / tiles.size) - offsetY;
 
       let dataIndex = 0;
+      const targetLayerTiles = getActiveLayerTiles();
       for (let h = 0; h < editing.moveSelectedTiles.height; h++) {
         for (let w = 0; w < editing.moveSelectedTiles.width; w++) {
           const tileX = startTileX + w;
@@ -153,7 +161,7 @@ export function registerInputEvents() {
           ) {
             const mapIndex = tileY * state.mapMaxColumn + tileX;
             if (!state.tiles.empty.includes(editing.moveTilesData[dataIndex])) {
-              state.tiles.map[mapIndex] = editing.moveTilesData[dataIndex];
+              targetLayerTiles[mapIndex] = editing.moveTilesData[dataIndex];
             }
           }
           dataIndex++;
@@ -164,6 +172,7 @@ export function registerInputEvents() {
       editing.isMoveSelecting = false;
       editing.moveSelectedTiles = {};
       editing.moveTilesData = [];
+      editing.moveSelectedLayerIndex = null;
     }
     if (editing.replaceState.state === 2) {
       editing.replaceState.state = 0;
@@ -173,14 +182,7 @@ export function registerInputEvents() {
 
   document.addEventListener("mousemove", (e) => {
     if (e.target.id === "screen" && state.loadedImages["tileset"]) {
-      state.palette.header.innerHTML = `
-        ${state.loadedImages["tileset"].name}.${state.loadedImages["tileset"].extension}
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-            <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
-            <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        | Selected tile #${editing.selectedTileIndex}
-      `;
+      updatePaletteHeader(`| Selected tile #${editing.selectedTileIndex}`);
       state.pointer.x = e.clientX;
       state.pointer.y = e.clientY;
 
@@ -290,16 +292,11 @@ export function registerInputEvents() {
       (mouseY + editing.paletteScrollY * 2 * paletteTileSize) / paletteTileSize
     );
     const tileIndex = tileY * tilesPerRow + tileX;
-    state.palette.header.innerHTML = `
-      ${state.loadedImages["tileset"].name}.${state.loadedImages["tileset"].extension} 
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-          <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
-          <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      | Ctrl + drag to scroll${
-        tileIndex < 0 ? "" : " | Tile #" + tileIndex + " (" + tileX + ", " + tileY + ")"
-      }
-    `;
+    const tileDescriptor =
+      tileIndex < 0
+        ? ""
+        : ` | Tile #${tileIndex} (${tileX}, ${tileY})`;
+    updatePaletteHeader(`| Ctrl + drag to scroll${tileDescriptor}`);
 
     if (editing.isSelecting && editing.selectionStart) {
       editing.selectionEnd = { x: tileX, y: tileY };
@@ -413,6 +410,12 @@ export function registerInputEvents() {
         return;
       }
     }
+    if (e.key === "," || e.key === ".") {
+      e.preventDefault();
+      cycleActiveLayer(e.key === "," ? -1 : 1);
+      updatePaletteHeader(`| Selected tile #${editing.selectedTileIndex}`);
+      return;
+    }
     if (!["e", "b", "m", "d", "Escape"].includes(e.key)) return;
     editing.isErasing = false;
     switch (e.key) {
@@ -482,6 +485,14 @@ export function registerInputEvents() {
         if (editing.isMoving) {
           const startX = editing.moveSelectedTiles.startX;
           const startY = editing.moveSelectedTiles.startY;
+          const sourceLayerIndex =
+            editing.moveSelectedLayerIndex ?? state.editing.activeLayerIndex;
+          const sourceLayer =
+            state.tiles.layers[sourceLayerIndex] ||
+            state.tiles.layers[state.editing.activeLayerIndex];
+          const restoreTiles = sourceLayer
+            ? sourceLayer.tiles
+            : getActiveLayerTiles();
           let dataIndex = 0;
           for (let h = 0; h < editing.moveSelectedTiles.height; h++) {
             for (let w = 0; w < editing.moveSelectedTiles.width; w++) {
@@ -494,7 +505,7 @@ export function registerInputEvents() {
                 tileY < state.mapMaxRow
               ) {
                 const mapIndex = tileY * state.mapMaxColumn + tileX;
-                state.tiles.map[mapIndex] = editing.moveTilesData[dataIndex];
+                restoreTiles[mapIndex] = editing.moveTilesData[dataIndex];
               }
               dataIndex++;
             }
@@ -507,16 +518,10 @@ export function registerInputEvents() {
         editing.moveSelectedTiles = {};
         editing.moveTilesData = [];
         editing.moveSelectionStart = null;
+        editing.moveSelectedLayerIndex = null;
         break;
     }
-    state.palette.header.innerHTML = `
-      ${state.loadedImages["tileset"].name}.${state.loadedImages["tileset"].extension} 
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-          <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
-          <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      | Selected tile #${editing.selectedTileIndex}
-    `;
+    updatePaletteHeader(`| Selected tile #${editing.selectedTileIndex}`);
   });
 
   document.addEventListener("keyup", (e) => {
@@ -543,5 +548,20 @@ function resizeCursor(edge) {
     default:
       return "default";
   }
+}
+
+function updatePaletteHeader(extraText = "") {
+  if (!state.loadedImages["tileset"] || !state.palette.header) return;
+  const layerLabel = state.tiles.layers.length
+    ? ` | ${getLayerStatusText()}`
+    : "";
+  state.palette.header.innerHTML = `
+      ${state.loadedImages["tileset"].name}.${state.loadedImages["tileset"].extension}
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      ${extraText}${layerLabel}
+    `;
 }
 

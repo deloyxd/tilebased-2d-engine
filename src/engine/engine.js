@@ -17,6 +17,7 @@ import {
   movePaletteWindow,
   resizePaletteWindow,
 } from "../palette/palette.js";
+import { resizeLayers, getLayerStatusText } from "../tiles/layers.js";
 
 export function startEngine() {
   initDomReferences();
@@ -69,16 +70,7 @@ function clearScreen() {
     const newMapMaxColumn = Math.ceil(state.maxCanvasWidth / state.tiles.size);
     const newMapMaxRow = Math.ceil(state.maxCanvasHeight / state.tiles.size);
     if (newMapMaxColumn > state.mapMaxColumn || newMapMaxRow > state.mapMaxRow) {
-      const oldMap = state.tiles.map.slice();
-      state.tiles.map = new Array(newMapMaxColumn * newMapMaxRow).fill(
-        state.editing.eraserBrush
-      );
-      for (let y = 0; y < state.mapMaxRow; y++) {
-        for (let x = 0; x < state.mapMaxColumn; x++) {
-          state.tiles.map[y * newMapMaxColumn + x] =
-            oldMap[y * state.mapMaxColumn + x];
-        }
-      }
+      resizeLayers(newMapMaxColumn, newMapMaxRow);
       state.mapMaxColumn = newMapMaxColumn;
       state.mapMaxRow = newMapMaxRow;
       saveMap();
@@ -120,6 +112,7 @@ function refreshEngine() {
       <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
       <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
+    | ${getLayerStatusText()}
   `;
   const tilesetSize = tileset.size;
   state.editing.eraserBrush =

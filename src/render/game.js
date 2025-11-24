@@ -1,4 +1,5 @@
 import state from "../state.js";
+import { getLayerStatusText } from "../tiles/layers.js";
 
 export function displayLoading() {
   if (state.ctx.fillStyle !== "black") state.ctx.fillStyle = "black";
@@ -23,6 +24,9 @@ export function displayInfo() {
   state.ctx.fillText(`[D]eselect`, 15, 150);
   state.ctx.fillText(`[Ctrl + Z] Undo`, 15, 180);
   state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 210);
+  state.ctx.fillText(`[,] Prev layer`, 15, 240);
+  state.ctx.fillText(`[.] Next layer`, 15, 270);
+  state.ctx.fillText(getLayerStatusText(), 15, 300);
 }
 
 export function displayBackground() {
@@ -66,23 +70,28 @@ export function displayBackground() {
 }
 
 export function displayGameMap() {
-  for (let i = 0; i < state.tiles.map.length; i++) {
-    const tileIndex = state.tiles.map[i];
-    if (tileIndex === state.editing.eraserBrush) continue;
-    const tilesPerRow =
-      state.loadedImages["tileset"].image.width /
-      state.loadedImages["tileset"].size;
-    state.ctx.drawImage(
-      state.loadedImages["tileset"].image,
-      (tileIndex % tilesPerRow) * state.loadedImages["tileset"].size,
-      Math.floor(tileIndex / tilesPerRow) * state.loadedImages["tileset"].size,
-      state.loadedImages["tileset"].size,
-      state.loadedImages["tileset"].size,
-      (i % state.mapMaxColumn) * state.tiles.size,
-      Math.floor(i / state.mapMaxColumn) * state.tiles.size,
-      state.tiles.size,
-      state.tiles.size
-    );
+  if (!state.tiles.layers.length) return;
+  const tilesPerRow =
+    state.loadedImages["tileset"].image.width /
+    state.loadedImages["tileset"].size;
+  for (const layer of state.tiles.layers) {
+    if (layer.visible === false) continue;
+    const layerTiles = layer.tiles;
+    for (let i = 0; i < layerTiles.length; i++) {
+      const tileIndex = layerTiles[i];
+      if (tileIndex === state.editing.eraserBrush) continue;
+      state.ctx.drawImage(
+        state.loadedImages["tileset"].image,
+        (tileIndex % tilesPerRow) * state.loadedImages["tileset"].size,
+        Math.floor(tileIndex / tilesPerRow) * state.loadedImages["tileset"].size,
+        state.loadedImages["tileset"].size,
+        state.loadedImages["tileset"].size,
+        (i % state.mapMaxColumn) * state.tiles.size,
+        Math.floor(i / state.mapMaxColumn) * state.tiles.size,
+        state.tiles.size,
+        state.tiles.size
+      );
+    }
   }
 }
 
