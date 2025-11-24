@@ -434,105 +434,17 @@ export function registerInputEvents() {
     editing.isErasing = false;
     switch (e.key) {
       case "e":
-        if (editing.isMoveSelecting) {
-          editing.isMoveSelecting = false;
-        }
-        editing.isErasing = true;
-        editing.selectedTileIndex = editing.eraserBrush;
-        editing.selectedTiles = {
-          startX:
-            state.loadedImages["tileset"].empty.type === "null"
-              ? -1
-              : state.loadedImages["tileset"].empty.tile[0].x,
-          startY:
-            state.loadedImages["tileset"].empty.type === "null"
-              ? -1
-              : state.loadedImages["tileset"].empty.tile[0].y,
-          width: 1,
-          height: 1,
-        };
+        selectEraser();
         break;
       case "b":
-        if (editing.isMoveSelecting) {
-          editing.isMoveSelecting = false;
-        }
-        if (
-          (editing.paintBrushGroup.startX ===
-            (state.loadedImages["tileset"].empty.type === "null"
-              ? -1
-              : state.loadedImages["tileset"].empty.tile[0].x) &&
-            editing.paintBrushGroup.startY ===
-              (state.loadedImages["tileset"].empty.type === "null"
-                ? -1
-                : state.loadedImages["tileset"].empty.tile[0].y)) ||
-          (editing.paintBrushGroup !== null &&
-            Object.keys(editing.paintBrushGroup).length === 0)
-        ) {
-          editing.selectedTileIndex =
-            state.loadedImages["tileset"].paint.tile[0].y *
-              (state.loadedImages["tileset"].image.width /
-                state.loadedImages["tileset"].size) +
-            state.loadedImages["tileset"].paint.tile[0].x;
-          editing.selectedTiles = {
-            startX: state.loadedImages["tileset"].paint.tile[0].x,
-            startY: state.loadedImages["tileset"].paint.tile[0].y,
-            width: 1,
-            height: 1,
-          };
-        } else {
-          editing.selectedTileIndex = editing.paintBrush;
-          editing.selectedTiles = editing.paintBrushGroup;
-        }
+        selectBrush();
         break;
       case "m":
-        if (!editing.isMoveSelecting) {
-          editing.isMoveSelecting = true;
-          if (!editing.moveSelectionStart) {
-            const tileX = Math.floor(state.pointer.x / tiles.size);
-            const tileY = Math.floor(state.pointer.y / tiles.size);
-            editing.moveSelectionEnd = { x: tileX, y: tileY };
-          }
-        }
+        selectMove();
         break;
       case "Escape":
       case "d":
-        if (editing.isMoving) {
-          const startX = editing.moveSelectedTiles.startX;
-          const startY = editing.moveSelectedTiles.startY;
-          const sourceLayerIndex =
-            editing.moveSelectedLayerIndex ?? state.editing.activeLayerIndex;
-          const sourceLayer =
-            state.tiles.layers[sourceLayerIndex] ||
-            state.tiles.layers[state.editing.activeLayerIndex];
-          const restoreTiles = sourceLayer
-            ? sourceLayer.tiles
-            : getActiveLayerTiles();
-          let dataIndex = 0;
-          for (let h = 0; h < editing.moveSelectedTiles.height; h++) {
-            for (let w = 0; w < editing.moveSelectedTiles.width; w++) {
-              const tileX = startX + w;
-              const tileY = startY + h;
-              if (
-                tileX >= 0 &&
-                tileX < state.mapMaxColumn &&
-                tileY >= 0 &&
-                tileY < state.mapMaxRow
-              ) {
-                const mapIndex = tileY * state.mapMaxColumn + tileX;
-                restoreTiles[mapIndex] = editing.moveTilesData[dataIndex];
-              }
-              dataIndex++;
-            }
-          }
-          saveMap();
-          saveStateToUndo();
-        }
-        editing.isMoveSelecting = false;
-        editing.isMoving = false;
-        editing.moveSelectedTiles = {};
-        editing.moveTilesData = [];
-        editing.moveSelectionStart = null;
-        editing.moveSelectedLayerIndex = null;
+        deselect();
         break;
     }
     updatePaletteHeader(
@@ -547,6 +459,114 @@ export function registerInputEvents() {
       editing.isScrolling = false;
     }
   });
+}
+
+export function selectEraser() {
+  const editing = state.editing;
+  if (editing.isMoveSelecting) {
+    editing.isMoveSelecting = false;
+  }
+  editing.isErasing = true;
+  editing.selectedTileIndex = editing.eraserBrush;
+  editing.selectedTiles = {
+    startX:
+      state.loadedImages["tileset"].empty.type === "null"
+        ? -1
+        : state.loadedImages["tileset"].empty.tile[0].x,
+    startY:
+      state.loadedImages["tileset"].empty.type === "null"
+        ? -1
+        : state.loadedImages["tileset"].empty.tile[0].y,
+    width: 1,
+    height: 1,
+  };
+}
+
+export function selectBrush() {
+  const editing = state.editing;
+  if (editing.isMoveSelecting) {
+    editing.isMoveSelecting = false;
+  }
+  if (
+    (editing.paintBrushGroup.startX ===
+      (state.loadedImages["tileset"].empty.type === "null"
+        ? -1
+        : state.loadedImages["tileset"].empty.tile[0].x) &&
+      editing.paintBrushGroup.startY ===
+        (state.loadedImages["tileset"].empty.type === "null"
+          ? -1
+          : state.loadedImages["tileset"].empty.tile[0].y)) ||
+    (editing.paintBrushGroup !== null &&
+      Object.keys(editing.paintBrushGroup).length === 0)
+  ) {
+    editing.selectedTileIndex =
+      state.loadedImages["tileset"].paint.tile[0].y *
+        (state.loadedImages["tileset"].image.width /
+          state.loadedImages["tileset"].size) +
+      state.loadedImages["tileset"].paint.tile[0].x;
+    editing.selectedTiles = {
+      startX: state.loadedImages["tileset"].paint.tile[0].x,
+      startY: state.loadedImages["tileset"].paint.tile[0].y,
+      width: 1,
+      height: 1,
+    };
+  } else {
+    editing.selectedTileIndex = editing.paintBrush;
+    editing.selectedTiles = editing.paintBrushGroup;
+  }
+}
+
+export function selectMove() {
+  const editing = state.editing;
+  if (!editing.isMoveSelecting) {
+    editing.isMoveSelecting = true;
+    if (!editing.moveSelectionStart) {
+      const tileX = Math.floor(state.pointer.x / tiles.size);
+      const tileY = Math.floor(state.pointer.y / tiles.size);
+      editing.moveSelectionEnd = { x: tileX, y: tileY };
+    }
+  }
+}
+
+export function deselect() {
+  const editing = state.editing;
+  if (editing.isMoving) {
+    const startX = editing.moveSelectedTiles.startX;
+    const startY = editing.moveSelectedTiles.startY;
+    const sourceLayerIndex =
+      editing.moveSelectedLayerIndex ?? state.editing.activeLayerIndex;
+    const sourceLayer =
+      state.tiles.layers[sourceLayerIndex] ||
+      state.tiles.layers[state.editing.activeLayerIndex];
+    const restoreTiles = sourceLayer
+      ? sourceLayer.tiles
+      : getActiveLayerTiles();
+    let dataIndex = 0;
+    for (let h = 0; h < editing.moveSelectedTiles.height; h++) {
+      for (let w = 0; w < editing.moveSelectedTiles.width; w++) {
+        const tileX = startX + w;
+        const tileY = startY + h;
+        if (
+          tileX >= 0 &&
+          tileX < state.mapMaxColumn &&
+          tileY >= 0 &&
+          tileY < state.mapMaxRow
+        ) {
+          const mapIndex = tileY * state.mapMaxColumn + tileX;
+          restoreTiles[mapIndex] = editing.moveTilesData[dataIndex];
+        }
+        dataIndex++;
+      }
+    }
+    saveMap();
+    saveStateToUndo();
+  }
+  editing.isMoveSelecting = false;
+  editing.isMoving = false;
+  editing.moveSelectedTiles = {};
+  editing.moveTilesData = [];
+  editing.moveSelectionStart = null;
+  editing.moveSelectedLayerIndex = null;
 }
 
 function resizeCursor(edge) {

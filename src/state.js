@@ -71,8 +71,8 @@ const state = {
     RESIZE_MARGIN: 6,
     BRUSH_MIN_SIZE: 1,
     BRUSH_MAX_SIZE: 8,
-    MAX_UNDO_STEPS: 10000,
-    DEFAULT_LAYER_COUNT: 3,
+    MAX_UNDO_STEPS: 100000,
+    DEFAULT_LAYER_COUNT: 5,
   },
   history: {
     undoStack: [],

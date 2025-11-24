@@ -1,7 +1,7 @@
 import state from "../state.js";
 import { initDomReferences } from "../ui/dom.js";
 import { registerUIEvents } from "../events/uiEvents.js";
-import { registerInputEvents } from "../events/inputEvents.js";
+import { registerInputEvents, selectBrush } from "../events/inputEvents.js";
 import { loadImages } from "../assets/images.js";
 import { loadMap, saveMap } from "../map/storage.js";
 import { saveStateToUndo } from "../map/history.js";
@@ -22,6 +22,7 @@ export function startEngine() {
   requestAnimationFrame(gameLoop);
   loadImages(() => {
     refreshEngine();
+    selectBrush();
     state.startGame = true;
   });
 }
