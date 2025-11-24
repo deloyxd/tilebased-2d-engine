@@ -575,7 +575,6 @@ function updatePaletteHeader(extraText) {
     extraText = lastPaletteHeaderExtraText;
   }
   if (!state.loadedImages["tileset"] || !state.palette.header) return;
-  const brushInfo = ` | Brush size: ${state.editing.brushSize}`;
   state.palette.header.innerHTML = `
       ${state.loadedImages["tileset"].name}.${
     state.loadedImages["tileset"].extension
@@ -584,7 +583,7 @@ function updatePaletteHeader(extraText) {
           <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
           <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-      ${extraText || ""}${brushInfo}
+      ${extraText || ""}
     `;
 }
 
