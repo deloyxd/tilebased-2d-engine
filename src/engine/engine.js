@@ -72,8 +72,10 @@ function clearScreen() {
       resizeLayers(newMapMaxColumn, newMapMaxRow);
       state.mapMaxColumn = newMapMaxColumn;
       state.mapMaxRow = newMapMaxRow;
-      saveMap();
-      saveStateToUndo();
+      if (state.tiles.layers.length) {
+        saveMap();
+        saveStateToUndo();
+      }
     }
     refreshEngine();
   }
