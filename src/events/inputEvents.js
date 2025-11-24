@@ -416,6 +416,10 @@ export function registerInputEvents() {
       updatePaletteHeader(`| Selected tile #${editing.selectedTileIndex}`);
       return;
     }
+    if (e.key === "/") {
+      editing.isOpacityEnabled = !editing.isOpacityEnabled;
+      return;
+    }
     if (!["e", "b", "m", "d", "Escape"].includes(e.key)) return;
     editing.isErasing = false;
     switch (e.key) {

@@ -62,6 +62,7 @@ const state = {
     moveTilesData: [],
     activeLayerIndex: 0,
     moveSelectedLayerIndex: null,
+    isOpacityEnabled: true,
   },
   constants: {
     PALETTE_TILE_SIZE_SCALE: 2,

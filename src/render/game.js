@@ -26,7 +26,8 @@ export function displayInfo() {
   state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 210);
   state.ctx.fillText(`[,] Prev layer`, 15, 240);
   state.ctx.fillText(`[.] Next layer`, 15, 270);
-  state.ctx.fillText(getLayerStatusText(), 15, 300);
+  state.ctx.fillText(`[/] Toggle layer opacity`, 15, 300);
+  state.ctx.fillText(getLayerStatusText(), 15, 330);
 }
 
 export function displayBackground() {
@@ -78,7 +79,7 @@ export function displayGameMap() {
     if (layer.visible === false) continue;
     const previousAlpha = state.ctx.globalAlpha;
     const layerIndex = +layer.name.toLowerCase().split("layer ")[1] - 1 || 0;
-    state.ctx.globalAlpha =
+    if (state.editing.isOpacityEnabled) state.ctx.globalAlpha =
       layerIndex === state.editing.activeLayerIndex ? 1 : 0.35;
     const layerTiles = layer.tiles;
     for (let i = 0; i < layerTiles.length; i++) {
