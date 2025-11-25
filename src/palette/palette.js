@@ -1,6 +1,7 @@
 import state from "../state.js";
 import { saveMap } from "../map/storage.js";
 import { saveStateToUndo } from "../map/history.js";
+import { placeTileAt } from "../tiles/autotile.js";
 import { getActiveLayerTiles } from "../tiles/layers.js";
 
 export function movePaletteWindow(x, y) {
@@ -334,7 +335,7 @@ export function displayTileSelections() {
                   editing.isErasing ||
                   !state.tiles.empty.includes(sourceTileIdx)
                 ) {
-                  activeLayerTiles[replacingIndex] = sourceTileIdx;
+                  placeTileAt(replacingIndex, sourceTileIdx);
                 }
                 saveMap();
               }
