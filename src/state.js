@@ -90,6 +90,26 @@ const state = {
     importFileInput: null,
     playBtn: null,
   },
+  gameplay: {
+    isPlaying: false,
+    input: {
+      left: false,
+      right: false,
+      jump: false,
+    },
+  },
+  player: {
+    width: 24,
+    height: 32,
+    position: { x: 0, y: 0 },
+    velocity: { x: 0, y: 0 },
+    facing: 1,
+    frameIndex: 0,
+    frameTimer: 0,
+    animation: "idle",
+    characterIndex: 0,
+    onGround: false,
+  },
 };
 
 export default state;

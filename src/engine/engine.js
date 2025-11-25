@@ -1,7 +1,11 @@
 import state from "../state.js";
 import { initDomReferences } from "../ui/dom.js";
 import { registerUIEvents } from "../events/uiEvents.js";
-import { registerInputEvents, selectBrush, updatePaletteHeader } from "../events/inputEvents.js";
+import {
+  registerInputEvents,
+  selectBrush,
+  updatePaletteHeader,
+} from "../events/inputEvents.js";
 import { loadImages } from "../assets/images.js";
 import { loadMap, saveMap } from "../map/storage.js";
 import { saveStateToUndo } from "../map/history.js";
@@ -14,11 +18,17 @@ import {
   resizePaletteWindow,
 } from "../palette/palette.js";
 import { resizeLayers } from "../tiles/layers.js";
+import { registerPlayerControls } from "../events/playerControls.js";
+import { initPlayer, updatePlayer } from "../gameplay/player.js";
+
+let previousTimestamp = 0;
 
 export function startEngine() {
   initDomReferences();
   registerUIEvents();
   registerInputEvents();
+  registerPlayerControls();
+  initPlayer();
   requestAnimationFrame(gameLoop);
   loadImages(() => {
     refreshEngine();
@@ -27,12 +37,17 @@ export function startEngine() {
   });
 }
 
-function gameLoop() {
+function gameLoop(timestamp = performance.now()) {
+  const deltaSeconds = previousTimestamp
+    ? (timestamp - previousTimestamp) / 1000
+    : 0;
+  previousTimestamp = timestamp;
   clearScreen();
-  calculateFPS();
+  calculateFPS(timestamp);
   if (!state.startGame) {
     displayLoading();
   } else {
+    updatePlayer(deltaSeconds);
     displayGame();
     if (state.editing.isEditing) {
       if (state.editing.isMoveSelecting || state.editing.isMoving) {
@@ -99,20 +114,20 @@ function clearScreen() {
   }
 }
 
-function calculateFPS() {
+function calculateFPS(timestamp) {
   state.frameCount++;
-  const now = performance.now();
-  if (now - state.lastTime >= 1000) {
+  if (!state.lastTime) state.lastTime = timestamp;
+  if (timestamp - state.lastTime >= 1000) {
     state.fps = Math.min(state.frameCount, 60);
     state.frameCount = 0;
-    state.lastTime = now;
+    state.lastTime = timestamp;
   }
 }
 
 function refreshEngine() {
   const tileset = state.loadedImages["tileset"];
   if (!tileset) return;
-  updatePaletteHeader('');
+  updatePaletteHeader("");
   const tilesetSize = tileset.size;
   state.editing.eraserBrush =
     tileset.empty.type === "null"

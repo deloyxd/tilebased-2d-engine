@@ -1,5 +1,6 @@
 import state from "../state.js";
 import { getLayerStatusText } from "../tiles/layers.js";
+import { drawPlayer } from "../gameplay/player.js";
 
 export function displayLoading() {
   if (state.ctx.fillStyle !== "black") state.ctx.fillStyle = "black";
@@ -11,6 +12,7 @@ export function displayLoading() {
 export function displayGame() {
   displayBackground();
   displayGameMap();
+  drawPlayer();
 }
 
 export function displayInfo() {
