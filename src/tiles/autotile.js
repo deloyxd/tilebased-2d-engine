@@ -10,64 +10,64 @@ function createAutotileGroup(baseVariants = {}, overrides = {}) {
 // Each group defines the tile indices for all 16 possible combinations
 const baseGroundVariants = {
   0: 0, // isolated tile
-  1: 161, // N
+  1: 133, // N
   2: 1, // E
-  3: 162, // NE
-  4: 23, // S
-  5: 138, // NS
-  6: 24, // ES
-  7: 139, // NES
+  3: 134, // NE
+  4: 19, // S
+  5: 114, // NS
+  6: 20, // ES
+  7: 115, // NES
   8: 3, // W
-  9: 164, // NW
+  9: 136, // NW
   10: 2, // EW
-  11: 163, // NEW
-  12: 26, // SW
-  13: 141, // NSW
-  14: 25, // ESW
-  15: 140, // full
+  11: 135, // NEW
+  12: 22, // SW
+  13: 117, // NSW
+  14: 21, // ESW
+  15: 116, // full
 };
 
 const autotileGroups = {
   // Tree leaves autotile group
   leaves: {
-    0: 123, // isolated tile
-    1: 168, // N
-    2: 169, // E
-    3: 165, // NE
-    4: 122, // S
-    5: 145, // NS
-    6: 119, // ES
-    7: 142, // NES
-    8: 170, // W
-    9: 167, // NW
-    10: 146, // EW
-    11: 166, // NEW
-    12: 121, // SW
-    13: 144, // NSW
-    14: 120, // ESW
-    15: 143, // full
+    0: 4, // isolated tile
+    1: 61, // N
+    2: 5, // E
+    3: 62, // NE
+    4: 23, // S
+    5: 42, // NS
+    6: 24, // ES
+    7: 43, // NES
+    8: 7, // W
+    9: 64, // NW
+    10: 6, // EW
+    11: 63, // NEW
+    12: 26, // SW
+    13: 45, // NSW
+    14: 25, // ESW
+    15: 44, // full
   },
   // Ground tiles autotile group (grass surface)
   groundGrass: baseGroundVariants,
-  groundSnow: createAutotileGroup(baseGroundVariants, {
-    0: 92, // isolated tile
-    2: 93, // E
-    4: 115, // S
-    6: 116, // ES
-    8: 95, // W
-    10: 94, // EW
-    12: 118, // SW
-    14: 117, // ESW
-  }),
   groundDirt: createAutotileGroup(baseGroundVariants, {
-    0: 46, // isolated tile
-    2: 47, // E
-    4: 69, // S
-    6: 70, // ES
-    8: 49, // W
-    10: 48, // EW
-    12: 72, // SW
-    14: 71, // ESW
+    0: 38, // isolated tile
+    2: 39, // E
+    4: 57, // S
+    6: 58, // ES
+    8: 41, // W
+    10: 40, // EW
+    12: 60, // SW
+    14: 59, // ESW
+  }),
+  groundSnow: createAutotileGroup(baseGroundVariants, {
+    0: 76, // isolated tile
+    2: 77, // E
+    4: 95, // S
+    6: 96, // ES
+    8: 79, // W
+    10: 78, // EW
+    12: 98, // SW
+    14: 97, // ESW
   }),
 };
 

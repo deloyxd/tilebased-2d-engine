@@ -38,8 +38,12 @@ function gameLoop() {
       if (state.editing.isMoveSelecting || state.editing.isMoving) {
         state.palette.root.style.display = "none";
       } else {
-        state.palette.root.style.display = "flex";
-        displayPalette();
+        if (state.editing.isReplacing) {
+          state.palette.root.style.display = "none";
+        } else {
+          state.palette.root.style.display = "flex";
+          displayPalette();
+        }
         displayTileSelections();
       }
       displayMoveSelection();
@@ -185,8 +189,11 @@ function refreshEngine() {
       tileset.image.height * 2 + state.palette.header.clientHeight
     );
     movePaletteWindow(
-      state.canvas.width / 2 - state.palette.root.clientWidth / 2,
-      state.canvas.height / 2 - state.palette.root.clientHeight / 2
+      state.canvas.width -
+        state.palette.root.clientWidth -
+        state.palette.borderWidth -
+        15,
+      state.palette.header.clientHeight + 15 + 20
     );
   }
 }
