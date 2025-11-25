@@ -26,21 +26,22 @@ export function displayInfo() {
     15,
     150
   );
+  state.ctx.fillText(`[A]utotiling enabled: ${state.editing.isAutotilingEnabled ? "Yes" : "No"}`, 15, 180);
 
-  state.ctx.fillText(`[M]ove`, 15, 210);
-  state.ctx.fillText(`[D]eselect`, 15, 240);
-  state.ctx.fillText(`[Ctrl + Z] Undo`, 15, 270);
-  state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 300);
+  state.ctx.fillText(`[M]ove`, 15, 240);
+  state.ctx.fillText(`[D]eselect`, 15, 270);
+  state.ctx.fillText(`[Ctrl + Z] Undo`, 15, 300);
+  state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 330);
 
-  state.ctx.fillText(getLayerStatusText(), 15, 360);
-  state.ctx.fillText(`[,] Prev layer`, 15, 390);
-  state.ctx.fillText(`[.] Next layer`, 15, 420);
-  state.ctx.fillText(`[/] Toggle layer opacity`, 15, 450);
+  state.ctx.fillText(getLayerStatusText(), 15, 390);
+  state.ctx.fillText(`[,] Prev layer`, 15, 420);
+  state.ctx.fillText(`[.] Next layer`, 15, 450);
+  state.ctx.fillText(`[/] Toggle layer opacity`, 15, 480);
   
-  state.ctx.fillText(`Palette:`, 15, 510);
-  state.ctx.fillText(`Movable window`, 15, 540);
-  state.ctx.fillText(`Resizable window`, 15, 570);
-  state.ctx.fillText(`Ctrl + drag to scroll inside window`, 15, 600);
+  state.ctx.fillText(`Palette:`, 15, 540);
+  state.ctx.fillText(`Movable window`, 15, 570);
+  state.ctx.fillText(`Resizable window`, 15, 600);
+  state.ctx.fillText(`Ctrl + drag to scroll inside window`, 15, 630);
 }
 
 export function displayBackground() {

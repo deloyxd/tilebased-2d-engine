@@ -406,7 +406,7 @@ export function registerInputEvents() {
       adjustBrushSize(e.key === "[" ? -1 : 1);
       return;
     }
-    if (!["e", "b", "m", "d", "Escape"].includes(e.key)) return;
+    if (!["e", "b", "m", "d", "Escape", "a"].includes(e.key)) return;
     editing.isErasing = false;
     switch (e.key) {
       case "e":
@@ -421,6 +421,9 @@ export function registerInputEvents() {
       case "Escape":
       case "d":
         deselect();
+        break;
+      case "a":
+        editing.isAutotilingEnabled = !editing.isAutotilingEnabled;
         break;
     }
     updatePaletteHeader(

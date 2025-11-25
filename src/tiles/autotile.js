@@ -107,6 +107,8 @@ export function placeTileAt(mapIdx, tileIdx) {
   const activeLayerTiles = getActiveLayerTiles();
   activeLayerTiles[mapIdx] = tileIdx;
 
+  if (!state.editing.isAutotilingEnabled) return;
+
   const groupName = getAutotileGroup(tileIdx);
   if (groupName) {
     setTileGroupAssignment(mapIdx, groupName);
