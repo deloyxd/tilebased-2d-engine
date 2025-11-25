@@ -1,7 +1,7 @@
 import state from "../state.js";
 import { initDomReferences } from "../ui/dom.js";
 import { registerUIEvents } from "../events/uiEvents.js";
-import { registerInputEvents, selectBrush } from "../events/inputEvents.js";
+import { registerInputEvents, selectBrush, updatePaletteHeader } from "../events/inputEvents.js";
 import { loadImages } from "../assets/images.js";
 import { loadMap, saveMap } from "../map/storage.js";
 import { saveStateToUndo } from "../map/history.js";
@@ -112,13 +112,7 @@ function calculateFPS() {
 function refreshEngine() {
   const tileset = state.loadedImages["tileset"];
   if (!tileset) return;
-  state.palette.header.innerHTML = `
-  ${tileset.name}.${tileset.extension} 
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
-      <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
+  updatePaletteHeader('');
   const tilesetSize = tileset.size;
   state.editing.eraserBrush =
     tileset.empty.type === "null"

@@ -568,23 +568,25 @@ function resizeCursor(edge) {
   }
 }
 
-function updatePaletteHeader(extraText) {
+export function updatePaletteHeader(extraText) {
   if (extraText !== undefined) {
     lastPaletteHeaderExtraText = extraText;
   } else {
     extraText = lastPaletteHeaderExtraText;
   }
   if (!state.loadedImages["tileset"] || !state.palette.header) return;
+  const dropDownSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
   state.palette.header.innerHTML = `
-      ${state.loadedImages["tileset"].name}.${
+  ${state.loadedImages["tileset"].name}.${
     state.loadedImages["tileset"].extension
   }
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-          <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
-          <path d="M7 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      ${extraText || ""}
-    `;
+  ${extraText || ""}
+  `;
 }
 
 function adjustBrushSize(delta) {
