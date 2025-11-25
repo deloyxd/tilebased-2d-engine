@@ -496,6 +496,7 @@ export function selectBrush() {
 }
 
 export function selectMove() {
+  const { tiles } = state;
   const editing = state.editing;
   if (!editing.isMoveSelecting) {
     editing.isMoveSelecting = true;
