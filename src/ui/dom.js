@@ -13,7 +13,7 @@ export function initDomReferences() {
     10
   );
 
-  state.dom.playBtn = document.getElementById("playBtn");
+  state.dom.testBtn = document.getElementById("testBtn");
   state.dom.importBtn = document.getElementById("importBtn");
   state.dom.exportBtn = document.getElementById("exportBtn");
   state.dom.resetBtn = document.getElementById("resetBtn");

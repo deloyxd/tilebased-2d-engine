@@ -20,30 +20,46 @@ export function displayInfo() {
   state.ctx.font = "bold 20px monospace";
   state.ctx.fillText(`FPS: ${state.fps}`, 15, 30);
   state.ctx.font = "16px monospace";
-  state.ctx.fillText(`[B]rush`, 15, 60);
-  state.ctx.fillText(`[E]raser`, 15, 90);
-  state.ctx.fillText(`'[' or ']' Adjust brush size`, 15, 120);
-  state.ctx.fillText(
-    `Brush size: ${state.editing.brushSize}/${state.constants.BRUSH_MAX_SIZE}`,
-    15,
-    150
-  );
-  state.ctx.fillText(`[A]utotiling enabled: ${state.editing.isAutotilingEnabled ? "Yes" : "No"}`, 15, 180);
 
-  state.ctx.fillText(`[M]ove`, 15, 240);
-  state.ctx.fillText(`[D]eselect`, 15, 270);
-  state.ctx.fillText(`[Ctrl + Z] Undo`, 15, 300);
-  state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 330);
+  if (state.editing.isEditing) {
+    state.ctx.fillText(`[B]rush`, 15, 60);
+    state.ctx.fillText(`[E]raser`, 15, 90);
+    state.ctx.fillText(`'[' or ']' Adjust brush size`, 15, 120);
+    state.ctx.fillText(
+      `Brush size: ${state.editing.brushSize}/${state.constants.BRUSH_MAX_SIZE}`,
+      15,
+      150
+    );
+    state.ctx.fillText(
+      `[A]utotiling enabled: ${
+        state.editing.isAutotilingEnabled ? "Yes" : "No"
+      }`,
+      15,
+      180
+    );
 
-  state.ctx.fillText(getLayerStatusText(), 15, 390);
-  state.ctx.fillText(`[,] Prev layer`, 15, 420);
-  state.ctx.fillText(`[.] Next layer`, 15, 450);
-  state.ctx.fillText(`[/] Toggle layer opacity`, 15, 480);
-  
-  state.ctx.fillText(`Palette:`, 15, 540);
-  state.ctx.fillText(`Movable window`, 15, 570);
-  state.ctx.fillText(`Resizable window`, 15, 600);
-  state.ctx.fillText(`Ctrl + drag to scroll inside window`, 15, 630);
+    state.ctx.fillText(`[M]ove`, 15, 240);
+    state.ctx.fillText(`[D]eselect`, 15, 270);
+    state.ctx.fillText(`[Ctrl + Z] Undo`, 15, 300);
+    state.ctx.fillText(`[Ctrl + Shift + Z] Redo`, 15, 330);
+
+    state.ctx.fillText(getLayerStatusText(), 15, 390);
+    state.ctx.fillText(`[,] Prev layer`, 15, 420);
+    state.ctx.fillText(`[.] Next layer`, 15, 450);
+    state.ctx.fillText(`[/] Toggle layer opacity`, 15, 480);
+
+    state.ctx.fillText(`Palette:`, 15, 540);
+    state.ctx.fillText(`Movable window`, 15, 570);
+    state.ctx.fillText(`Resizable window`, 15, 600);
+    state.ctx.fillText(`Ctrl + drag to scroll inside window`, 15, 630);
+    return;
+  }
+
+  if (state.gameplay.isPlaying) {
+    state.ctx.fillText(`[W / Space / Up arrow] jump`, 15, 60);
+    state.ctx.fillText(`[A / D / Left / Right arrow] move`, 15, 90);
+    return;
+  }
 }
 
 export function displayBackground() {
@@ -95,7 +111,7 @@ export function displayGameMap() {
     if (layer.visible === false) continue;
     const previousAlpha = state.ctx.globalAlpha;
     const layerIndex = +layer.name.toLowerCase().split("layer ")[1] - 1 || 0;
-    if (state.editing.isOpacityEnabled)
+    if (state.editing.isEditing && state.editing.isOpacityEnabled)
       state.ctx.globalAlpha =
         layerIndex === state.editing.activeLayerIndex ? 1 : 0.35;
     const layerTiles = layer.tiles;

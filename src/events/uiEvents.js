@@ -7,8 +7,8 @@ import { togglePlayMode } from "../gameplay/player.js";
 export function registerUIEvents() {
   const { dom } = state;
 
-  if (dom.playBtn) {
-    dom.playBtn.addEventListener("click", togglePlayMode);
+  if (dom.testBtn) {
+    dom.testBtn.addEventListener("click", togglePlayMode);
   }
 
   if (!dom.importBtn || !dom.exportBtn || !dom.resetBtn || !dom.importFileInput)

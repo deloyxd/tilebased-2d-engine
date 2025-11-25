@@ -88,7 +88,7 @@ const state = {
     exportBtn: null,
     resetBtn: null,
     importFileInput: null,
-    playBtn: null,
+    testBtn: null,
   },
   gameplay: {
     isPlaying: false,

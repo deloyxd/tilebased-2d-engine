@@ -2,8 +2,8 @@ import state from "../state.js";
 import { getTileTypeLabel } from "../tiles/types.js";
 
 const PLAYER_CONSTANTS = {
-  widthScale: 1.5,
-  heightScale: 1.5,
+  widthScale: 1.33,
+  heightScale: 1.33,
   moveSpeed: 220,
   gravity: 2400,
   maxFallSpeed: 900,
@@ -21,7 +21,8 @@ export function initPlayer() {
 }
 
 export function togglePlayMode() {
-  const button = state.dom.playBtn;
+  const button = state.dom.testBtn;
+  state.editing.isEditing = !state.editing.isEditing;
   state.gameplay.isPlaying = !state.gameplay.isPlaying;
   state.gameplay.input.left = false;
   state.gameplay.input.right = false;
@@ -30,14 +31,26 @@ export function togglePlayMode() {
   if (state.gameplay.isPlaying) {
     resetPlayerState();
     if (button) button.textContent = "Stop";
+    setEditorButtonsVisibility(true);
   } else {
     state.player.velocity.x = 0;
     state.player.velocity.y = 0;
     state.player.animation = "idle";
     state.player.frameIndex = 0;
     state.player.frameTimer = 0;
-    if (button) button.textContent = "Play";
+    if (button) button.textContent = "Test";
+    setEditorButtonsVisibility(false);
   }
+}
+
+function setEditorButtonsVisibility(shouldHide) {
+  const displayValue = shouldHide ? "none" : "";
+  ["importBtn", "exportBtn", "resetBtn"].forEach((key) => {
+    const button = state.dom[key];
+    if (button) {
+      button.style.display = displayValue;
+    }
+  });
 }
 
 export function updatePlayer(deltaSeconds = 0) {
