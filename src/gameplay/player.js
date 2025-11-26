@@ -196,10 +196,7 @@ function resolveVerticalCollisions(nextY, tileSize) {
   }
 
   for (let col = leftCol; col <= rightCol; col++) {
-    if (
-      isSpecificTileType(col, tileRow, "platform") ||
-      isSpecificTileType(col, tileRow, "solid")
-    ) {
+    if (isSpecificTileType(col, tileRow, "solid")) {
       if (falling) {
         player.position.y = tileRow * tileSize - player.height;
         player.velocity.y = 0;
