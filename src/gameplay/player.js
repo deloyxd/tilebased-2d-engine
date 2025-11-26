@@ -7,7 +7,7 @@ const PLAYER_CONSTANTS = {
   moveSpeed: 220,
   gravity: 2400,
   maxFallSpeed: 900,
-  jumpForce: -780,
+  jumpForce: -600,
   frameDuration: 0.14,
   collisionPadding: 6,
   spawnOffsetX: 8,
@@ -17,7 +17,7 @@ export function initPlayer() {
   const tileSize = state.tiles.size || 32;
   state.player.width = Math.floor(tileSize * PLAYER_CONSTANTS.widthScale);
   state.player.height = Math.floor(tileSize * PLAYER_CONSTANTS.heightScale);
-  state.player.collisionWidth = tileSize;
+  state.player.collisionWidth = Math.max(1, Math.floor(tileSize / 2));
   state.player.collisionHeight = tileSize;
   resetPlayerState();
 }
@@ -138,12 +138,14 @@ export function drawPlayer() {
     state.ctx.fillStyle = "#ff4d6d";
     state.ctx.fillRect(drawX, player.position.y, player.width, player.height);
     state.ctx.restore();
+    drawCollisionDebug();
     return;
   }
 
   const frame = getCurrentFrame(spriteSheet);
   if (!frame) {
     state.ctx.restore();
+    drawCollisionDebug();
     return;
   }
 
@@ -159,6 +161,24 @@ export function drawPlayer() {
     player.height
   );
   state.ctx.restore();
+  drawCollisionDebug();
+}
+
+function drawCollisionDebug() {
+  if (!state.gameplay.isPlaying || !state.ctx) return;
+  // const player = state.player;
+  // const collisionOffsetX = getCollisionOffsetX();
+  // const collisionOffsetY = (player.height - player.collisionHeight) / 2;
+  // const collisionX = player.position.x + collisionOffsetX;
+  // const collisionY = player.position.y + collisionOffsetY;
+
+  // const footHeight = player.collisionHeight / 4;
+  // const footY = collisionY + player.collisionHeight - footHeight;
+  // state.ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+  // state.ctx.fillRect(collisionX, footY, player.collisionWidth, footHeight);
+  // state.ctx.strokeStyle = "#ff0000";
+  // state.ctx.lineWidth = 2;
+  // state.ctx.strokeRect(collisionX, footY, player.collisionWidth, footHeight);
 }
 
 export function resetPlayerState() {
@@ -189,7 +209,7 @@ function resolveHorizontalCollisions(nextX, tileSize) {
     return false;
   const player = state.player;
   const movingRight = nextX > player.position.x;
-  const collisionOffsetX = (player.width - player.collisionWidth) / 2;
+  const collisionOffsetX = getCollisionOffsetX();
   const collisionX = player.position.x + collisionOffsetX;
   const nextCollisionX = nextX + collisionOffsetX;
   const collisionEdge = movingRight
@@ -216,10 +236,7 @@ function resolveHorizontalCollisions(nextX, tileSize) {
   }
 
   for (let row = topRow; row <= bottomRow; row++) {
-    if (
-      isSpecificTileType(tileCol, row, "solid") ||
-      isSpecificTileType(tileCol, row, "platform")
-    ) {
+    if (isSpecificTileType(tileCol, row, "solid")) {
       if (movingRight) {
         player.position.x =
           tileCol * tileSize - player.collisionWidth - collisionOffsetX;
@@ -239,14 +256,9 @@ function resolveVerticalCollisions(nextY, tileSize) {
     return false;
   const player = state.player;
   const falling = nextY > player.position.y;
-  const collisionOffsetX = (player.width - player.collisionWidth) / 2;
+  const collisionOffsetX = getCollisionOffsetX();
   const collisionOffsetY = (player.height - player.collisionHeight) / 2;
-  const collisionY = player.position.y + collisionOffsetY;
   const nextCollisionY = nextY + collisionOffsetY;
-  const collisionEdge = falling
-    ? nextCollisionY + player.collisionHeight
-    : nextCollisionY;
-  const tileRow = Math.floor(collisionEdge / tileSize);
   const padding = PLAYER_CONSTANTS.collisionPadding;
   const leftCol = Math.floor(
     (player.position.x + collisionOffsetX + padding) / tileSize
@@ -256,29 +268,59 @@ function resolveVerticalCollisions(nextY, tileSize) {
       tileSize
   );
 
-  if (
-    tileRow < 0 ||
-    tileRow >= state.mapMaxRow ||
-    rightCol < 0 ||
-    leftCol >= state.mapMaxColumn
-  ) {
-    return false;
-  }
+  const footHeight = player.collisionHeight / 4;
+  const footTop = nextCollisionY + player.collisionHeight - footHeight;
+  const footBottom = nextCollisionY + player.collisionHeight;
+  const tileRow = Math.floor(footBottom / tileSize);
 
-  for (let col = leftCol; col <= rightCol; col++) {
-    if (isSpecificTileType(col, tileRow, "solid")) {
-      if (falling) {
-        player.position.y =
-          tileRow * tileSize - player.collisionHeight - collisionOffsetY;
-        player.velocity.y = 0;
-        player.onGround = true;
-      } else {
-        player.position.y = (tileRow + 1) * tileSize - collisionOffsetY;
-        player.velocity.y = 0;
+  if (
+    tileRow >= 0 &&
+    tileRow < state.mapMaxRow &&
+    rightCol >= 0 &&
+    leftCol < state.mapMaxColumn
+  ) {
+    for (let col = leftCol; col <= rightCol; col++) {
+      const isSolid = isSpecificTileType(col, tileRow, "solid");
+      const isPlatform = isSpecificTileType(col, tileRow, "platform");
+
+      if (isSolid || isPlatform) {
+        const tileTop = tileRow * tileSize;
+        const tileCollisionHeight = isPlatform ? tileSize / 4 : tileSize;
+        const tileBottom = tileTop + tileCollisionHeight;
+
+        if (footBottom > tileTop && footTop < tileBottom) {
+          player.position.y =
+            tileRow * tileSize - player.collisionHeight - collisionOffsetY;
+          player.velocity.y = 0;
+          player.onGround = true;
+          return true;
+        }
       }
-      return true;
     }
   }
+
+  if (!falling) {
+    const collisionEdge = nextCollisionY;
+    const headTileRow = Math.floor(collisionEdge / tileSize);
+
+    if (
+      headTileRow >= 0 &&
+      headTileRow < state.mapMaxRow &&
+      rightCol >= 0 &&
+      leftCol < state.mapMaxColumn
+    ) {
+      for (let col = leftCol; col <= rightCol; col++) {
+        const isSolid = isSpecificTileType(col, headTileRow, "solid");
+
+        if (isSolid) {
+          player.position.y = (headTileRow + 1) * tileSize - collisionOffsetY;
+          player.velocity.y = 0;
+          return true;
+        }
+      }
+    }
+  }
+
   return false;
 }
 
@@ -376,4 +418,10 @@ function findSignSpawnPosition() {
     state.player.width / 2;
   const y = signTile.row * tileSize - state.player.height;
   return { x, y };
+}
+
+function getCollisionOffsetX() {
+  const player = state.player;
+  const facingRight = player.facing >= 0;
+  return facingRight ? Math.max(0, player.width - player.collisionWidth - 5) : 5;
 }
