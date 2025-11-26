@@ -4,10 +4,10 @@ import { getTileTypeLabel } from "../tiles/types.js";
 const PLAYER_CONSTANTS = {
   widthScale: 1.33,
   heightScale: 1.33,
-  moveSpeed: 220,
-  gravity: 2400,
+  moveSpeed: 150,
+  gravity: 1500,
   maxFallSpeed: 900,
-  jumpForce: -600,
+  jumpForce: -475,
   frameDuration: 0.14,
   collisionPadding: 6,
   spawnOffsetX: 8,
@@ -17,7 +17,7 @@ export function initPlayer() {
   const tileSize = state.tiles.size || 32;
   state.player.width = Math.floor(tileSize * PLAYER_CONSTANTS.widthScale);
   state.player.height = Math.floor(tileSize * PLAYER_CONSTANTS.heightScale);
-  state.player.collisionWidth = Math.max(1, Math.floor(tileSize / 2));
+  state.player.collisionWidth = Math.max(1, Math.floor(tileSize * 0.75));
   state.player.collisionHeight = tileSize;
   resetPlayerState();
 }
