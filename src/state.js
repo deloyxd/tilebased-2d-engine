@@ -95,6 +95,8 @@ const state = {
     input: {
       left: false,
       right: false,
+      up: false,
+      down: false,
       jump: false,
     },
   },
@@ -111,6 +113,9 @@ const state = {
     animation: "idle",
     characterIndex: 0,
     onGround: false,
+    isClimbing: false,
+    climbAxis: null,
+    climbTile: null,
   },
 };
 

@@ -5,6 +5,8 @@ const PLAYER_CONSTANTS = {
   widthScale: 1.33,
   heightScale: 1.33,
   moveSpeed: 150,
+  climbSpeed: 150,
+  climbColliderWidthRatio: 0.35,
   gravity: 1500,
   maxFallSpeed: 900,
   jumpForce: -475,
@@ -29,6 +31,8 @@ export function togglePlayMode() {
   state.gameplay.input.left = false;
   state.gameplay.input.right = false;
   state.gameplay.input.jump = false;
+  state.gameplay.input.up = false;
+  state.gameplay.input.down = false;
 
   if (state.gameplay.isPlaying) {
     resetPlayerState();
@@ -66,7 +70,22 @@ export function updatePlayer(deltaSeconds = 0) {
   const dt = Math.max(deltaSeconds, 0);
   const tileSize = state.tiles.size || 1;
 
+  const verticalDirection = (input.down ? 1 : 0) - (input.up ? 1 : 0);
   const horizontalDirection = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+
+  const climbSurface = detectClimbSurface(tileSize);
+  if (climbSurface) {
+    player.isClimbing = true;
+    player.climbAxis = climbSurface.orientation;
+    player.climbTile = climbSurface.tile;
+  } else if (player.isClimbing) {
+    player.isClimbing = false;
+    player.climbAxis = null;
+    player.climbTile = null;
+  } else {
+    player.climbTile = null;
+  }
+
   player.velocity.x = horizontalDirection * PLAYER_CONSTANTS.moveSpeed;
   if (horizontalDirection !== 0) {
     player.facing = horizontalDirection;
@@ -80,15 +99,23 @@ export function updatePlayer(deltaSeconds = 0) {
     Math.min(player.position.x, state.canvas.width - player.width)
   );
 
-  player.velocity.y += PLAYER_CONSTANTS.gravity * dt;
-  player.velocity.y = Math.min(
-    player.velocity.y,
-    PLAYER_CONSTANTS.maxFallSpeed
-  );
-
-  if (input.jump && player.onGround) {
-    player.velocity.y = PLAYER_CONSTANTS.jumpForce;
+  if (player.isClimbing) {
+    player.velocity.y =
+      player.climbAxis === "vertical"
+        ? verticalDirection * PLAYER_CONSTANTS.climbSpeed
+        : 0;
     player.onGround = false;
+  } else {
+    player.velocity.y += PLAYER_CONSTANTS.gravity * dt;
+    player.velocity.y = Math.min(
+      player.velocity.y,
+      PLAYER_CONSTANTS.maxFallSpeed
+    );
+
+    if (input.jump && player.onGround) {
+      player.velocity.y = PLAYER_CONSTANTS.jumpForce;
+      player.onGround = false;
+    }
   }
 
   const nextY = player.position.y + player.velocity.y * dt;
@@ -166,19 +193,25 @@ export function drawPlayer() {
 
 function drawCollisionDebug() {
   if (!state.gameplay.isPlaying || !state.ctx) return;
-  // const player = state.player;
-  // const collisionOffsetX = getCollisionOffsetX();
-  // const collisionOffsetY = (player.height - player.collisionHeight) / 2;
-  // const collisionX = player.position.x + collisionOffsetX;
-  // const collisionY = player.position.y + collisionOffsetY;
+  return;
+  const player = state.player;
+  const tileSize = state.tiles.size;
+  if (!player.climbTile || !tileSize) return;
 
-  // const footHeight = player.collisionHeight / 4;
-  // const footY = collisionY + player.collisionHeight - footHeight;
-  // state.ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
-  // state.ctx.fillRect(collisionX, footY, player.collisionWidth, footHeight);
-  // state.ctx.strokeStyle = "#ff0000";
-  // state.ctx.lineWidth = 2;
-  // state.ctx.strokeRect(collisionX, footY, player.collisionWidth, footHeight);
+  const {
+    x: tileX,
+    y: tileY,
+    width: narrowWidth,
+    height: tileHeight,
+  } = player.climbTile;
+
+  state.ctx.save();
+  state.ctx.strokeStyle = "rgba(0, 255, 170, 0.9)";
+  state.ctx.fillStyle = "rgba(0, 255, 170, 0.25)";
+  state.ctx.lineWidth = 2;
+  state.ctx.fillRect(tileX, tileY, narrowWidth, tileHeight);
+  state.ctx.strokeRect(tileX, tileY, narrowWidth, tileHeight);
+  state.ctx.restore();
 }
 
 export function resetPlayerState() {
@@ -202,6 +235,9 @@ export function resetPlayerState() {
   state.player.frameTimer = 0;
   state.player.onGround = false;
   state.player.facing = 1;
+  state.player.isClimbing = false;
+  state.player.climbAxis = null;
+  state.player.climbTile = null;
 }
 
 function resolveHorizontalCollisions(nextX, tileSize) {
@@ -317,8 +353,9 @@ function resolveVerticalCollisions(nextY, tileSize) {
     ) {
       for (let col = leftCol; col <= rightCol; col++) {
         const isSolid = isSpecificTileType(col, headTileRow, "solid");
+        const isBox = isSpecificTileType(col, headTileRow, "box");
 
-        if (isSolid) {
+        if (isSolid || isBox) {
           player.position.y = (headTileRow + 1) * tileSize - collisionOffsetY;
           player.velocity.y = 0;
           return true;
@@ -426,10 +463,118 @@ function findSignSpawnPosition() {
   return { x, y };
 }
 
+function detectClimbSurface(tileSize) {
+  if (
+    !tileSize ||
+    !state.tiles.layers.length ||
+    !state.mapMaxColumn ||
+    !state.mapMaxRow
+  ) {
+    return null;
+  }
+
+  const player = state.player;
+  const collisionOffsetX = getCollisionOffsetX();
+  const collisionOffsetY = (player.height - player.collisionHeight) / 2;
+  const leftCol = Math.max(
+    0,
+    Math.floor((player.position.x + collisionOffsetX) / tileSize)
+  );
+  const rightCol = Math.min(
+    state.mapMaxColumn - 1,
+    Math.floor(
+      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize
+    )
+  );
+  const topRow = Math.max(
+    0,
+    Math.floor((player.position.y + collisionOffsetY) / tileSize)
+  );
+  const bottomRow = Math.min(
+    state.mapMaxRow - 1,
+    Math.floor(
+      (player.position.y + collisionOffsetY + player.collisionHeight) / tileSize
+    )
+  );
+
+  const playerCollisionRect = {
+    x: player.position.x + collisionOffsetX,
+    y: player.position.y + collisionOffsetY,
+    width: player.collisionWidth,
+    height: player.collisionHeight,
+  };
+
+  for (let row = topRow; row <= bottomRow; row++) {
+    for (let col = leftCol; col <= rightCol; col++) {
+      const label = getTileLabelAt(col, row);
+      if (!label) continue;
+      const lower = label.toLowerCase();
+      if (lower.includes("ladder") || lower.includes("rope")) {
+        const orientation =
+          lower.includes("horizontal") ||
+          lower.includes("left") ||
+          lower.includes("right")
+            ? "horizontal"
+            : "vertical";
+        const narrowWidth = Math.max(
+          4,
+          tileSize * PLAYER_CONSTANTS.climbColliderWidthRatio
+        );
+        const tileX = col * tileSize + (tileSize - narrowWidth) / 2;
+        const tileY = row * tileSize;
+        const tileRect = {
+          x: tileX,
+          y: tileY,
+          width: narrowWidth,
+          height: tileSize,
+          col,
+          row,
+        };
+        if (rectsOverlap(playerCollisionRect, tileRect)) {
+          return {
+            orientation,
+            tile: tileRect,
+          };
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function getCollisionOffsetX() {
   const player = state.player;
   const facingRight = player.facing >= 0;
   return facingRight
     ? Math.max(0, player.width - player.collisionWidth - 5)
     : 5;
+}
+
+function getTileLabelAt(col, row) {
+  if (
+    col < 0 ||
+    row < 0 ||
+    col >= state.mapMaxColumn ||
+    row >= state.mapMaxRow
+  ) {
+    return null;
+  }
+  const index = row * state.mapMaxColumn + col;
+  for (const layer of state.tiles.layers) {
+    const tileIndex = layer.tiles[index];
+    if (tileIndex === undefined || tileIndex === state.editing.eraserBrush)
+      continue;
+    const label = getTileTypeLabel(tileIndex);
+    if (label) return label;
+  }
+  return null;
+}
+
+function rectsOverlap(a, b) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
 }
