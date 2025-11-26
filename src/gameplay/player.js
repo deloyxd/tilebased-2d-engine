@@ -236,7 +236,10 @@ function resolveHorizontalCollisions(nextX, tileSize) {
   }
 
   for (let row = topRow; row <= bottomRow; row++) {
-    if (isSpecificTileType(tileCol, row, "solid")) {
+    const isSolid = isSpecificTileType(tileCol, row, "solid");
+    const isBox = isSpecificTileType(tileCol, row, "box");
+
+    if (isSolid || isBox) {
       if (movingRight) {
         player.position.x =
           tileCol * tileSize - player.collisionWidth - collisionOffsetX;
@@ -283,8 +286,9 @@ function resolveVerticalCollisions(nextY, tileSize) {
       for (let col = leftCol; col <= rightCol; col++) {
         const isSolid = isSpecificTileType(col, tileRow, "solid");
         const isPlatform = isSpecificTileType(col, tileRow, "platform");
+        const isBox = isSpecificTileType(col, tileRow, "box");
 
-        if (isSolid || isPlatform) {
+        if (isSolid || isPlatform || isBox) {
           const tileTop = tileRow * tileSize;
           const tileCollisionHeight = isPlatform ? tileSize / 4 : tileSize;
           const tileBottom = tileTop + tileCollisionHeight;
