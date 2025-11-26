@@ -109,7 +109,9 @@ export function placeTileAt(mapIdx, tileIdx) {
 
   if (!state.editing.isAutotilingEnabled) return;
 
+  const isErasing = state.tiles.empty.includes(tileIdx) || tileIdx === state.editing.eraserBrush;
   const groupName = getAutotileGroup(tileIdx);
+  
   if (groupName) {
     setTileGroupAssignment(mapIdx, groupName);
     updateAutotile(mapIdx);
@@ -130,7 +132,14 @@ export function placeTileAt(mapIdx, tileIdx) {
     if (!isValidCoordinate(nx, ny)) return;
     const index = ny * state.mapMaxColumn + nx;
     const neighborTile = getTileByIndex(index);
-    if (isAutotileNeighbor(index, neighborTile, groupName)) {
+    
+    if (isErasing) {
+      // When erasing, update all neighbors that are autotiles (regardless of group)
+      const neighborGroup = getTileGroup(index, neighborTile);
+      if (neighborGroup) {
+        updateAutotile(index);
+      }
+    } else if (isAutotileNeighbor(index, neighborTile, groupName)) {
       updateAutotile(index);
     }
   });
