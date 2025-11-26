@@ -2,13 +2,21 @@ import state from "../state.js";
 import { saveStateToUndo } from "../map/history.js";
 import { importMap, exportMap } from "../map/io.js";
 import { resetMap } from "../map/storage.js";
-import { togglePlayMode } from "../gameplay/player.js";
+import { togglePlayMode, resetPlayerState } from "../gameplay/player.js";
 
 export function registerUIEvents() {
   const { dom } = state;
 
   if (dom.testBtn) {
     dom.testBtn.addEventListener("click", togglePlayMode);
+  }
+
+  if (dom.resetPlayerBtn) {
+    dom.resetPlayerBtn.addEventListener("click", () => {
+      if (state.gameplay.isPlaying) {
+        resetPlayerState();
+      }
+    });
   }
 
   if (!dom.importBtn || !dom.exportBtn || !dom.resetBtn || !dom.importFileInput)

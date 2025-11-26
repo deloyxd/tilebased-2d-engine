@@ -51,6 +51,10 @@ function setEditorButtonsVisibility(shouldHide) {
       button.style.display = displayValue;
     }
   });
+  const resetPlayerBtn = state.dom.resetPlayerBtn;
+  if (resetPlayerBtn) {
+    resetPlayerBtn.style.display = shouldHide ? "" : "none";
+  }
 }
 
 export function updatePlayer(deltaSeconds = 0) {
@@ -150,7 +154,7 @@ export function drawPlayer() {
   state.ctx.restore();
 }
 
-function resetPlayerState() {
+export function resetPlayerState() {
   const spawnPosition = findSignSpawnPosition();
   const fallbackX =
     (state.canvas?.width || window.innerWidth) * 0.1 - state.player.width / 2;

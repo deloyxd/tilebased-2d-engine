@@ -17,6 +17,7 @@ export function initDomReferences() {
   state.dom.importBtn = document.getElementById("importBtn");
   state.dom.exportBtn = document.getElementById("exportBtn");
   state.dom.resetBtn = document.getElementById("resetBtn");
+  state.dom.resetPlayerBtn = document.getElementById("resetPlayerBtn");
   state.dom.importFileInput = document.getElementById("importFile");
 
   return state;
