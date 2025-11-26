@@ -101,6 +101,8 @@ const state = {
   player: {
     width: 24,
     height: 32,
+    collisionWidth: 32,
+    collisionHeight: 32,
     position: { x: 0, y: 0 },
     velocity: { x: 0, y: 0 },
     facing: 1,

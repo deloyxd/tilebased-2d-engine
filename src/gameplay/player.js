@@ -17,6 +17,8 @@ export function initPlayer() {
   const tileSize = state.tiles.size || 32;
   state.player.width = Math.floor(tileSize * PLAYER_CONSTANTS.widthScale);
   state.player.height = Math.floor(tileSize * PLAYER_CONSTANTS.heightScale);
+  state.player.collisionWidth = tileSize;
+  state.player.collisionHeight = tileSize;
   resetPlayerState();
 }
 
@@ -69,7 +71,10 @@ export function updatePlayer(deltaSeconds = 0) {
   if (horizontalDirection !== 0) {
     player.facing = horizontalDirection;
   }
-  player.position.x += player.velocity.x * dt;
+  const nextX = player.position.x + player.velocity.x * dt;
+  if (!resolveHorizontalCollisions(nextX, tileSize)) {
+    player.position.x = nextX;
+  }
   player.position.x = Math.max(
     0,
     Math.min(player.position.x, state.canvas.width - player.width)
@@ -93,16 +98,18 @@ export function updatePlayer(deltaSeconds = 0) {
   }
 
   const nextAnimation =
-    Math.abs(player.velocity.x) > 1 && player.onGround ? "move" : "idle";
+    !player.onGround || Math.abs(player.velocity.x) > 1 ? "move" : "idle";
   if (nextAnimation !== player.animation) {
     player.animation = nextAnimation;
-    player.frameIndex = 0;
+    player.frameIndex = nextAnimation === "move" ? 1 : 0;
     player.frameTimer = 0;
   } else if (player.onGround || player.animation === "move") {
     player.frameTimer += dt;
     if (player.frameTimer >= PLAYER_CONSTANTS.frameDuration) {
       player.frameTimer = 0;
-      player.frameIndex = (player.frameIndex + 1) % getAnimationFrameCount();
+      const frameCount =
+        player.animation === "move" ? 2 : getAnimationFrameCount();
+      player.frameIndex = (player.frameIndex + 1) % frameCount;
     }
   }
 
@@ -147,7 +154,7 @@ export function drawPlayer() {
     spriteSheet.size,
     spriteSheet.size,
     drawX,
-    player.position.y,
+    player.position.y - 5,
     player.width,
     player.height
   );
@@ -177,17 +184,76 @@ export function resetPlayerState() {
   state.player.facing = 1;
 }
 
+function resolveHorizontalCollisions(nextX, tileSize) {
+  if (!state.tiles.layers.length || !state.mapMaxColumn || !state.mapMaxRow)
+    return false;
+  const player = state.player;
+  const movingRight = nextX > player.position.x;
+  const collisionOffsetX = (player.width - player.collisionWidth) / 2;
+  const collisionX = player.position.x + collisionOffsetX;
+  const nextCollisionX = nextX + collisionOffsetX;
+  const collisionEdge = movingRight
+    ? nextCollisionX + player.collisionWidth
+    : nextCollisionX;
+  const tileCol = Math.floor(collisionEdge / tileSize);
+  const padding = PLAYER_CONSTANTS.collisionPadding;
+  const collisionOffsetY = (player.height - player.collisionHeight) / 2;
+  const topRow = Math.floor(
+    (player.position.y + collisionOffsetY + padding) / tileSize
+  );
+  const bottomRow = Math.floor(
+    (player.position.y + collisionOffsetY + player.collisionHeight - padding) /
+      tileSize
+  );
+
+  if (
+    tileCol < 0 ||
+    tileCol >= state.mapMaxColumn ||
+    bottomRow < 0 ||
+    topRow >= state.mapMaxRow
+  ) {
+    return false;
+  }
+
+  for (let row = topRow; row <= bottomRow; row++) {
+    if (
+      isSpecificTileType(tileCol, row, "solid") ||
+      isSpecificTileType(tileCol, row, "platform")
+    ) {
+      if (movingRight) {
+        player.position.x =
+          tileCol * tileSize - player.collisionWidth - collisionOffsetX;
+        player.velocity.x = 0;
+      } else {
+        player.position.x = (tileCol + 1) * tileSize - collisionOffsetX;
+        player.velocity.x = 0;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
 function resolveVerticalCollisions(nextY, tileSize) {
   if (!state.tiles.layers.length || !state.mapMaxColumn || !state.mapMaxRow)
     return false;
   const player = state.player;
   const falling = nextY > player.position.y;
-  const collisionEdge = falling ? nextY + player.height : nextY;
+  const collisionOffsetX = (player.width - player.collisionWidth) / 2;
+  const collisionOffsetY = (player.height - player.collisionHeight) / 2;
+  const collisionY = player.position.y + collisionOffsetY;
+  const nextCollisionY = nextY + collisionOffsetY;
+  const collisionEdge = falling
+    ? nextCollisionY + player.collisionHeight
+    : nextCollisionY;
   const tileRow = Math.floor(collisionEdge / tileSize);
   const padding = PLAYER_CONSTANTS.collisionPadding;
-  const leftCol = Math.floor((player.position.x + padding) / tileSize);
+  const leftCol = Math.floor(
+    (player.position.x + collisionOffsetX + padding) / tileSize
+  );
   const rightCol = Math.floor(
-    (player.position.x + player.width - padding) / tileSize
+    (player.position.x + collisionOffsetX + player.collisionWidth - padding) /
+      tileSize
   );
 
   if (
@@ -202,11 +268,12 @@ function resolveVerticalCollisions(nextY, tileSize) {
   for (let col = leftCol; col <= rightCol; col++) {
     if (isSpecificTileType(col, tileRow, "solid")) {
       if (falling) {
-        player.position.y = tileRow * tileSize - player.height;
+        player.position.y =
+          tileRow * tileSize - player.collisionHeight - collisionOffsetY;
         player.velocity.y = 0;
         player.onGround = true;
       } else {
-        player.position.y = (tileRow + 1) * tileSize;
+        player.position.y = (tileRow + 1) * tileSize - collisionOffsetY;
         player.velocity.y = 0;
       }
       return true;
@@ -238,9 +305,22 @@ function isSpecificTileType(col, row, type) {
 }
 
 function getCurrentFrame(spriteSheet) {
+  const player = state.player;
+  const players = spriteSheet.player || [];
+  const descriptor = players[player.characterIndex] ||
+    players[0] || { frames: [] };
+
+  if (player.animation === "move") {
+    const idleFrame = descriptor.frames.find((f) => f.animation === "idle");
+    const moveFrame = descriptor.frames.find((f) => f.animation === "move");
+    if (idleFrame && moveFrame) {
+      return player.frameIndex % 2 === 0 ? idleFrame : moveFrame;
+    }
+  }
+
   const frames = getFramesForAnimation(spriteSheet);
   if (!frames.length) return null;
-  return frames[state.player.frameIndex % frames.length];
+  return frames[player.frameIndex % frames.length];
 }
 
 function getFramesForAnimation(spriteSheet) {
