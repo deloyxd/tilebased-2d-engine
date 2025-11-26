@@ -423,7 +423,7 @@ export function registerInputEvents() {
         deselect();
         break;
       case "a":
-        editing.isAutotilingEnabled = !editing.isAutotilingEnabled;
+        if (editing.isEditing) editing.isAutotilingEnabled = !editing.isAutotilingEnabled;
         break;
     }
     updatePaletteHeader(
