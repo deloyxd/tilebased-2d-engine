@@ -1,5 +1,6 @@
 import state from "../state.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
+import { updateSaveButtonVisibility } from "../events/uiEvents.js";
 
 export function loadMap() {
   const { tiles } = state;
@@ -31,6 +32,7 @@ export function loadMap() {
     data.activeLayerIndex ?? 0
   );
   loadLastLoadedLevel();
+  updateSaveButtonVisibility();
 }
 
 export function loadLastLoadedLevel() {
@@ -73,6 +75,7 @@ export function saveMap() {
       state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || [],
   };
   localStorage.setItem("map", JSON.stringify(data));
+  updateSaveButtonVisibility();
 }
 
 export function resetMap() {
@@ -80,9 +83,9 @@ export function resetMap() {
   state.mapMaxColumn = Math.ceil(window.innerWidth / tiles.size);
   state.mapMaxRow = Math.ceil(window.innerHeight / tiles.size);
   initializeLayersFromData([], 0);
-  saveMap();
   state.lastLoadedLevel.id = null;
   state.lastLoadedLevel.author = null;
   saveLastLoadedLevel();
+  saveMap();
 }
 

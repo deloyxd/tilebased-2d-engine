@@ -14,10 +14,43 @@ import { displayBackground } from "../render/game.js";
 
 let dom = null;
 
+function isMapEmpty() {
+  if (!state.tiles.layers || state.tiles.layers.length === 0) {
+    return true;
+  }
+
+  const emptyTileValues = new Set(state.tiles.empty);
+  if (state.editing.eraserBrush !== undefined) {
+    emptyTileValues.add(state.editing.eraserBrush);
+  }
+
+  for (const layer of state.tiles.layers) {
+    if (!layer.tiles || layer.tiles.length === 0) {
+      continue;
+    }
+    for (const tile of layer.tiles) {
+      if (!emptyTileValues.has(tile)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export function updateSaveButtonVisibility() {
-  if (dom && dom.saveLevelBtn) {
+  if (!dom) return;
+
+  const isEmpty = isMapEmpty();
+  const hasLoadedLevel = state.lastLoadedLevel.id && state.lastLoadedLevel.author;
+
+  if (dom.saveLevelBtn) {
     dom.saveLevelBtn.style.display =
-      state.lastLoadedLevel.id && state.lastLoadedLevel.author ? "" : "none";
+      !isEmpty && hasLoadedLevel ? "" : "none";
+  }
+
+  if (dom.saveAsLevelBtn) {
+    dom.saveAsLevelBtn.style.display = !isEmpty ? "" : "none";
   }
 }
 
