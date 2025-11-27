@@ -1,0 +1,14 @@
+{
+  "hosting": [
+    {
+      "target": "islandventure-ae04d",
+      "public": "public",
+      "rewrites": [{ "source": "**", "destination": "/index.html" }]
+    },
+    {
+      "target": "islandventure",
+      "public": "public",
+      "rewrites": [{ "source": "**", "destination": "/index.html" }]
+    }
+  ]
+}

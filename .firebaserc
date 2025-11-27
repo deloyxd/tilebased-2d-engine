@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "islandventure-ae04d"
+  },
+  "targets": {
+    "islandventure-ae04d": {
+      "hosting": {
+        "islandventure": [
+          "islandventure"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
