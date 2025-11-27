@@ -9,6 +9,7 @@ export function loadMap() {
   const savedMap = localStorage.getItem("map");
   if (!savedMap) {
     resetMap();
+    loadLastLoadedLevel();
     return;
   }
 
@@ -29,6 +30,36 @@ export function loadMap() {
     data.layers && data.layers.length ? data.layers : legacyLayer,
     data.activeLayerIndex ?? 0
   );
+  loadLastLoadedLevel();
+}
+
+export function loadLastLoadedLevel() {
+  const saved = localStorage.getItem("lastLoadedLevel");
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      state.lastLoadedLevel.id = data.id || null;
+      state.lastLoadedLevel.author = data.author || null;
+    } catch (error) {
+      console.error("Error loading lastLoadedLevel:", error);
+      state.lastLoadedLevel.id = null;
+      state.lastLoadedLevel.author = null;
+    }
+  }
+}
+
+export function saveLastLoadedLevel() {
+  if (state.lastLoadedLevel.id && state.lastLoadedLevel.author) {
+    localStorage.setItem(
+      "lastLoadedLevel",
+      JSON.stringify({
+        id: state.lastLoadedLevel.id,
+        author: state.lastLoadedLevel.author,
+      })
+    );
+  } else {
+    localStorage.removeItem("lastLoadedLevel");
+  }
 }
 
 export function saveMap() {
@@ -50,5 +81,8 @@ export function resetMap() {
   state.mapMaxRow = Math.ceil(window.innerHeight / tiles.size);
   initializeLayersFromData([], 0);
   saveMap();
+  state.lastLoadedLevel.id = null;
+  state.lastLoadedLevel.author = null;
+  saveLastLoadedLevel();
 }
 

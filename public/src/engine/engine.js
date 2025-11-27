@@ -1,6 +1,6 @@
 import state from "../state.js";
 import { initDomReferences } from "../ui/dom.js";
-import { registerUIEvents } from "../events/uiEvents.js";
+import { registerUIEvents, updateSaveButtonVisibility } from "../events/uiEvents.js";
 import {
   registerInputEvents,
   selectBrush,
@@ -143,6 +143,7 @@ function refreshEngine() {
     height: 1,
   };
   loadMap();
+  updateSaveButtonVisibility();
   const tilesetBG = tileset.bg || { type: "normal" };
   state.tiles.bg = [];
   const canvasMaxColumn = Math.ceil(state.canvas.width / state.tiles.size);

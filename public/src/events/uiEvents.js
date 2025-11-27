@@ -1,7 +1,7 @@
 import state from "../state.js";
 import { saveStateToUndo } from "../map/history.js";
 import { importMap, exportMap, importMapFromData } from "../map/io.js";
-import { resetMap } from "../map/storage.js";
+import { resetMap, saveLastLoadedLevel } from "../map/storage.js";
 import { togglePlayMode, resetPlayerState } from "../gameplay/player.js";
 import {
   initFirestore,
@@ -14,8 +14,8 @@ import { displayBackground } from "../render/game.js";
 
 let dom = null;
 
-function updateSaveButtonVisibility() {
-  if (dom.saveLevelBtn) {
+export function updateSaveButtonVisibility() {
+  if (dom && dom.saveLevelBtn) {
     dom.saveLevelBtn.style.display =
       state.lastLoadedLevel.id && state.lastLoadedLevel.author ? "" : "none";
   }
@@ -49,8 +49,6 @@ export function registerUIEvents() {
     const confirmed = confirm("Are you sure you want to reset the map?");
     if (confirmed) {
       resetMap();
-      state.lastLoadedLevel.id = null;
-      state.lastLoadedLevel.author = null;
       updateSaveButtonVisibility();
     }
   });
@@ -61,6 +59,7 @@ export function registerUIEvents() {
       importMap(e.target.files[0]);
       state.lastLoadedLevel.id = null;
       state.lastLoadedLevel.author = null;
+      saveLastLoadedLevel();
       updateSaveButtonVisibility();
       e.target.value = "";
     }
@@ -284,6 +283,7 @@ async function handleShowAllLevels() {
             importMapFromData(level.mapData);
             state.lastLoadedLevel.id = level.id;
             state.lastLoadedLevel.author = level.author || null;
+            saveLastLoadedLevel();
             updateSaveButtonVisibility();
             dom.levelModal.style.display = "none";
           }
