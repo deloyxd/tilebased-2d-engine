@@ -59,6 +59,7 @@ function setEditorButtonsVisibility(shouldHide) {
     "exportBtn",
     "resetBtn",
     "saveAsLevelBtn",
+    "saveLevelBtn",
     "showAllLevelsBtn",
   ].forEach((key) => {
     const button = state.dom[key];

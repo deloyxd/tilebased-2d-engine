@@ -7,6 +7,8 @@ import {
   query,
   orderBy,
   Timestamp,
+  doc,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import state from "../state.js";
 
@@ -107,5 +109,37 @@ export async function getAllLevels() {
     console.error("Error loading levels:", error);
     alert("Error loading levels: " + error.message);
     return [];
+  }
+}
+
+export async function updateLevelToFirestore(levelId) {
+  if (!db) {
+    initFirestore();
+    if (!db) {
+      alert("Firebase not initialized");
+      return false;
+    }
+  }
+
+  const mapData = {
+    mapMaxColumn: state.mapMaxColumn,
+    mapMaxRow: state.mapMaxRow,
+    layers: state.tiles.layers,
+    activeLayerIndex: state.editing.activeLayerIndex,
+    tiles:
+      state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || [],
+  };
+
+  try {
+    const docRef = doc(db, "levels", levelId);
+    await updateDoc(docRef, {
+      mapData: mapData,
+      updatedAt: Timestamp.now(),
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating level:", error);
+    alert("Error updating level: " + error.message);
+    return false;
   }
 }

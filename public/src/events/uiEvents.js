@@ -8,6 +8,7 @@ import {
   getAuthors,
   saveLevelToFirestore,
   getAllLevels,
+  updateLevelToFirestore,
 } from "../map/firestore.js";
 import { displayBackground } from "../render/game.js";
 
@@ -54,6 +55,10 @@ export function registerUIEvents() {
 
   if (dom.saveAsLevelBtn) {
     dom.saveAsLevelBtn.addEventListener("click", handleSaveAsLevel);
+  }
+
+  if (dom.saveLevelBtn) {
+    dom.saveLevelBtn.addEventListener("click", handleSaveLevel);
   }
 
   if (dom.showAllLevelsBtn) {
@@ -110,6 +115,32 @@ async function handleSaveAsLevel() {
 
   if (levelId) {
     alert(`Level saved successfully! ID: ${levelId}`);
+  }
+}
+
+async function handleSaveLevel() {
+  if (!state.lastLoadedLevel.id || !state.lastLoadedLevel.author) {
+    alert("No map loaded. Please load a map first using 'Load Map' > 'Import Map'.");
+    return;
+  }
+
+  const userInput = prompt("Enter your full name to confirm:");
+
+  if (!userInput) return;
+
+  const enteredName = userInput.trim();
+  const mapAuthor = state.lastLoadedLevel.author;
+
+  if (enteredName !== mapAuthor) {
+    alert("Name does not match the author of the loaded map. Update cancelled.");
+    return;
+  }
+
+  initFirestore();
+  const success = await updateLevelToFirestore(state.lastLoadedLevel.id);
+
+  if (success) {
+    alert("Map updated successfully!");
   }
 }
 
@@ -236,6 +267,8 @@ async function handleShowAllLevels() {
           if (confirmed) {
             saveStateToUndo();
             importMapFromData(level.mapData);
+            state.lastLoadedLevel.id = level.id;
+            state.lastLoadedLevel.author = level.author || null;
             dom.levelModal.style.display = "none";
           }
         }

@@ -20,6 +20,7 @@ export function initDomReferences() {
   state.dom.resetPlayerBtn = document.getElementById("resetPlayerBtn");
   state.dom.importFileInput = document.getElementById("importFile");
   state.dom.saveAsLevelBtn = document.getElementById("saveAsLevelBtn");
+  state.dom.saveLevelBtn = document.getElementById("saveLevelBtn");
   state.dom.showAllLevelsBtn = document.getElementById("showAllLevelsBtn");
   state.dom.levelModal = document.getElementById("levelModal");
   state.dom.levelModalClose = document.getElementById("levelModalClose");

@@ -90,10 +90,15 @@ const state = {
     importFileInput: null,
     testBtn: null,
     saveAsLevelBtn: null,
+    saveLevelBtn: null,
     showAllLevelsBtn: null,
     levelModal: null,
     levelModalClose: null,
     levelModalContent: null,
+  },
+  lastLoadedLevel: {
+    id: null,
+    author: null,
   },
   gameplay: {
     isPlaying: false,
