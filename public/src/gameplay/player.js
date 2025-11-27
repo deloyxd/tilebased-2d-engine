@@ -18,6 +18,30 @@ const PLAYER_CONSTANTS = {
   spawnOffsetX: 8,
 };
 
+function isMapEmpty() {
+  const layers = state.tiles?.layers || [];
+  if (layers.length === 0) {
+    return true;
+  }
+
+  const emptyTileValues = new Set(state.tiles?.empty || []);
+  if (state.editing?.eraserBrush !== undefined) {
+    emptyTileValues.add(state.editing.eraserBrush);
+  }
+
+  for (const layer of layers) {
+    const tiles = layer?.tiles || [];
+    if (tiles.length === 0) continue;
+    for (const tile of tiles) {
+      if (!emptyTileValues.has(tile)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export function initPlayer() {
   const tileSize = state.tiles.size || 32;
   state.player.width = Math.floor(tileSize * PLAYER_CONSTANTS.widthScale);
@@ -54,25 +78,27 @@ export function togglePlayMode() {
 
 function setEditorButtonsVisibility(shouldHide) {
   const displayValue = shouldHide ? "none" : "";
-  [
-    "importBtn",
-    "exportBtn",
-    "resetBtn",
-    "saveAsLevelBtn",
-    "showAllLevelsBtn",
-  ].forEach((key) => {
+  ["importBtn", "exportBtn", "resetBtn", "showAllLevelsBtn"].forEach((key) => {
     const button = state.dom[key];
     if (button) {
       button.style.display = displayValue;
     }
   });
+  const saveAsLevelBtn = state.dom.saveAsLevelBtn;
+  if (saveAsLevelBtn) {
+    saveAsLevelBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";
+  }
   const saveLevelBtn = state.dom.saveLevelBtn;
   if (saveLevelBtn) {
     if (shouldHide) {
       saveLevelBtn.style.display = "none";
     } else {
       saveLevelBtn.style.display =
-        state.lastLoadedLevel.id && state.lastLoadedLevel.author ? "" : "none";
+        !isMapEmpty() &&
+        state.lastLoadedLevel.id &&
+        state.lastLoadedLevel.author
+          ? ""
+          : "none";
     }
   }
   const resetPlayerBtn = state.dom.resetPlayerBtn;
