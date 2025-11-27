@@ -116,6 +116,7 @@ const state = {
     isClimbing: false,
     climbAxis: null,
     climbTile: null,
+    isSwimming: false,
   },
 };
 

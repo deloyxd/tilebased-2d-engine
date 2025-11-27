@@ -10,6 +10,9 @@ const PLAYER_CONSTANTS = {
   gravity: 1500,
   maxFallSpeed: 900,
   jumpForce: -475,
+  swimGravity: 300,
+  swimMaxFallSpeed: 200,
+  swimJumpForce: -200,
   frameDuration: 0.14,
   collisionPadding: 6,
   spawnOffsetX: 8,
@@ -86,6 +89,9 @@ export function updatePlayer(deltaSeconds = 0) {
     player.climbTile = null;
   }
 
+  const isInWater = detectWater(tileSize);
+  player.isSwimming = isInWater;
+
   player.velocity.x = horizontalDirection * PLAYER_CONSTANTS.moveSpeed;
   if (horizontalDirection !== 0) {
     player.facing = horizontalDirection;
@@ -105,6 +111,17 @@ export function updatePlayer(deltaSeconds = 0) {
         ? verticalDirection * PLAYER_CONSTANTS.climbSpeed
         : 0;
     player.onGround = false;
+  } else if (player.isSwimming) {
+    player.velocity.y += PLAYER_CONSTANTS.swimGravity * dt;
+    player.velocity.y = Math.min(
+      player.velocity.y,
+      PLAYER_CONSTANTS.swimMaxFallSpeed
+    );
+
+    if (input.jump) {
+      player.velocity.y = PLAYER_CONSTANTS.swimJumpForce;
+      player.onGround = false;
+    }
   } else {
     player.velocity.y += PLAYER_CONSTANTS.gravity * dt;
     player.velocity.y = Math.min(
@@ -165,14 +182,14 @@ export function drawPlayer() {
     state.ctx.fillStyle = "#ff4d6d";
     state.ctx.fillRect(drawX, player.position.y, player.width, player.height);
     state.ctx.restore();
-    drawCollisionDebug();
+
     return;
   }
 
   const frame = getCurrentFrame(spriteSheet);
   if (!frame) {
     state.ctx.restore();
-    drawCollisionDebug();
+
     return;
   }
 
@@ -187,30 +204,6 @@ export function drawPlayer() {
     player.width,
     player.height
   );
-  state.ctx.restore();
-  drawCollisionDebug();
-}
-
-function drawCollisionDebug() {
-  if (!state.gameplay.isPlaying || !state.ctx) return;
-  return;
-  const player = state.player;
-  const tileSize = state.tiles.size;
-  if (!player.climbTile || !tileSize) return;
-
-  const {
-    x: tileX,
-    y: tileY,
-    width: narrowWidth,
-    height: tileHeight,
-  } = player.climbTile;
-
-  state.ctx.save();
-  state.ctx.strokeStyle = "rgba(0, 255, 170, 0.9)";
-  state.ctx.fillStyle = "rgba(0, 255, 170, 0.25)";
-  state.ctx.lineWidth = 2;
-  state.ctx.fillRect(tileX, tileY, narrowWidth, tileHeight);
-  state.ctx.strokeRect(tileX, tileY, narrowWidth, tileHeight);
   state.ctx.restore();
 }
 
@@ -238,6 +231,7 @@ export function resetPlayerState() {
   state.player.isClimbing = false;
   state.player.climbAxis = null;
   state.player.climbTile = null;
+  state.player.isSwimming = false;
 }
 
 function resolveHorizontalCollisions(nextX, tileSize) {
@@ -577,4 +571,51 @@ function rectsOverlap(a, b) {
     a.y < b.y + b.height &&
     a.y + a.height > b.y
   );
+}
+
+function detectWater(tileSize) {
+  if (
+    !tileSize ||
+    !state.tiles.layers.length ||
+    !state.mapMaxColumn ||
+    !state.mapMaxRow
+  ) {
+    return false;
+  }
+
+  const player = state.player;
+  const collisionOffsetX = getCollisionOffsetX();
+  const collisionOffsetY = (player.height - player.collisionHeight) / 2;
+  const leftCol = Math.max(
+    0,
+    Math.floor((player.position.x + collisionOffsetX) / tileSize)
+  );
+  const rightCol = Math.min(
+    state.mapMaxColumn - 1,
+    Math.floor(
+      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize
+    )
+  );
+  const topRow = Math.max(
+    0,
+    Math.floor((player.position.y + collisionOffsetY) / tileSize)
+  );
+  const bottomRow = Math.min(
+    state.mapMaxRow - 1,
+    Math.floor(
+      (player.position.y + collisionOffsetY + player.collisionHeight) / tileSize
+    )
+  );
+
+  for (let row = topRow; row <= bottomRow; row++) {
+    for (let col = leftCol; col <= rightCol; col++) {
+      const label = getTileLabelAt(col, row);
+      if (!label) continue;
+      const lower = label.toLowerCase();
+      if (lower.includes("water") || lower.includes("waterfall")) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
