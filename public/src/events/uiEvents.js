@@ -126,7 +126,7 @@ async function handleShowAllLevels() {
     const levels = await getAllLevels();
 
     if (levels.length === 0) {
-      dom.levelModalContent.innerHTML = "<p>No levels found.</p>";
+      dom.levelModalContent.innerHTML = "<p>No levels designs found.</p>";
       dom.levelModal.style.display = "block";
       return;
     }
@@ -134,6 +134,7 @@ async function handleShowAllLevels() {
     let html = '<div style="display: grid; gap: 10px;">';
 
     levels.forEach((level, index) => {
+      const id = level.id;
       const createdAt = level.createdAt?.toDate
         ? level.createdAt.toDate().toLocaleString()
         : "Unknown";
@@ -158,14 +159,16 @@ async function handleShowAllLevels() {
             <div style="margin-bottom: 10px;">
               <strong>Author:</strong> ${level.author || "Unknown"}
             </div>
-            <div style="margin-bottom: 10px;">
+            <div style="margin-bottom: 10px; font-size: 0.95em;">
               <strong>Level:</strong> ${
                 (level.level || 0) === 0 ? "N/A" : level.level
               }
             </div>
-            <div style="margin-bottom: 10px; font-size: 0.9em; color: #aaa;">
+            <div style="font-size: 0.9em; color: #aaa;">
               <div>Created: ${createdAt}</div>
               <div>Updated: ${updatedAt}</div>
+              <br>
+              <div>ID: ${id}</div>
             </div>
             <button
               class="import-level-btn"
