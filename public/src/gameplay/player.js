@@ -59,7 +59,6 @@ function setEditorButtonsVisibility(shouldHide) {
     "exportBtn",
     "resetBtn",
     "saveAsLevelBtn",
-    "saveLevelBtn",
     "showAllLevelsBtn",
   ].forEach((key) => {
     const button = state.dom[key];
@@ -67,6 +66,15 @@ function setEditorButtonsVisibility(shouldHide) {
       button.style.display = displayValue;
     }
   });
+  const saveLevelBtn = state.dom.saveLevelBtn;
+  if (saveLevelBtn) {
+    if (shouldHide) {
+      saveLevelBtn.style.display = "none";
+    } else {
+      saveLevelBtn.style.display =
+        state.lastLoadedLevel.id && state.lastLoadedLevel.author ? "" : "none";
+    }
+  }
   const resetPlayerBtn = state.dom.resetPlayerBtn;
   if (resetPlayerBtn) {
     resetPlayerBtn.style.display = shouldHide ? "" : "none";

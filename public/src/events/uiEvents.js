@@ -14,6 +14,13 @@ import { displayBackground } from "../render/game.js";
 
 let dom = null;
 
+function updateSaveButtonVisibility() {
+  if (dom.saveLevelBtn) {
+    dom.saveLevelBtn.style.display =
+      state.lastLoadedLevel.id && state.lastLoadedLevel.author ? "" : "none";
+  }
+}
+
 export function registerUIEvents() {
   dom = state.dom;
 
@@ -42,6 +49,9 @@ export function registerUIEvents() {
     const confirmed = confirm("Are you sure you want to reset the map?");
     if (confirmed) {
       resetMap();
+      state.lastLoadedLevel.id = null;
+      state.lastLoadedLevel.author = null;
+      updateSaveButtonVisibility();
     }
   });
 
@@ -49,6 +59,9 @@ export function registerUIEvents() {
     if (e.target.files.length > 0) {
       saveStateToUndo();
       importMap(e.target.files[0]);
+      state.lastLoadedLevel.id = null;
+      state.lastLoadedLevel.author = null;
+      updateSaveButtonVisibility();
       e.target.value = "";
     }
   });
@@ -80,6 +93,8 @@ export function registerUIEvents() {
       }
     });
   }
+
+  updateSaveButtonVisibility();
 }
 
 async function handleSaveAsLevel() {
@@ -269,6 +284,7 @@ async function handleShowAllLevels() {
             importMapFromData(level.mapData);
             state.lastLoadedLevel.id = level.id;
             state.lastLoadedLevel.author = level.author || null;
+            updateSaveButtonVisibility();
             dom.levelModal.style.display = "none";
           }
         }
