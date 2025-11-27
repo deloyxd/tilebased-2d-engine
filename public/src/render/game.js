@@ -62,16 +62,18 @@ export function displayInfo() {
   }
 }
 
-export function displayBackground() {
+export function displayBackground(canvas = null, ctx = null) {
+  if (!canvas) canvas = state.canvas;
+  if (!ctx) ctx = state.ctx;
   if (state.loadedImages["tileset"].bg.type === "color") {
-    state.ctx.fillStyle = state.loadedImages["tileset"].bg.tile[0].hex;
-    state.ctx.fillRect(0, 0, state.canvas.width, state.canvas.height);
+    ctx.fillStyle = state.loadedImages["tileset"].bg.tile[0].hex;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     return;
   }
   if (state.loadedImages["tileset"].bg.type === "source") {
     if (!state.loadedImages["tileset"].bg.image) return;
     for (const tile of state.tiles.bg) {
-      state.ctx.drawImage(
+      ctx.drawImage(
         state.loadedImages["tileset"].bg.image,
         state.loadedImages["tileset"].bg.tile[0].x *
           state.loadedImages["tileset"].bg.size,
@@ -88,7 +90,7 @@ export function displayBackground() {
     return;
   }
   for (const tile of state.tiles.bg) {
-    state.ctx.drawImage(
+    ctx.drawImage(
       state.loadedImages["tileset"].image,
       tile.srcX,
       tile.srcY,
