@@ -19,7 +19,7 @@ import {
 } from "../palette/palette.js";
 import { resizeLayers } from "../tiles/layers.js";
 import { registerPlayerControls } from "../events/playerControls.js";
-import { initPlayer, updatePlayer } from "../gameplay/player.js";
+import { initPlayer, updatePlayer, togglePlayMode } from "../gameplay/player.js";
 
 let previousTimestamp = 0;
 
@@ -79,6 +79,7 @@ function clearScreen() {
     state.canvas.height = window.innerHeight;
   }
   if (screenSizeChanged) {
+    if (state.gameplay.isPlaying) togglePlayMode();
     if (state.canvas.width > state.maxCanvasWidth)
       state.maxCanvasWidth = state.canvas.width;
     if (state.canvas.height > state.maxCanvasHeight)
