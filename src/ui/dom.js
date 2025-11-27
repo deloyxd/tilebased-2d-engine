@@ -19,6 +19,11 @@ export function initDomReferences() {
   state.dom.resetBtn = document.getElementById("resetBtn");
   state.dom.resetPlayerBtn = document.getElementById("resetPlayerBtn");
   state.dom.importFileInput = document.getElementById("importFile");
+  state.dom.saveAsLevelBtn = document.getElementById("saveAsLevelBtn");
+  state.dom.showAllLevelsBtn = document.getElementById("showAllLevelsBtn");
+  state.dom.levelModal = document.getElementById("levelModal");
+  state.dom.levelModalClose = document.getElementById("levelModalClose");
+  state.dom.levelModalContent = document.getElementById("levelModalContent");
 
   return state;
 }

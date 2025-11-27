@@ -7,24 +7,28 @@ export function importMap(file) {
   reader.readAsText(file);
   reader.onload = () => {
     const data = JSON.parse(reader.result);
-    state.mapMaxColumn = data.mapMaxColumn;
-    state.mapMaxRow = data.mapMaxRow;
-    const legacyLayer = data.tiles
-      ? [
-          {
-            id: "legacy-layer",
-            name: "Layer 1",
-            visible: true,
-            tiles: data.tiles,
-          },
-        ]
-      : [];
-    initializeLayersFromData(
-      data.layers && data.layers.length ? data.layers : legacyLayer,
-      data.activeLayerIndex ?? 0
-    );
-    saveMap();
+    importMapFromData(data);
   };
+}
+
+export function importMapFromData(data) {
+  state.mapMaxColumn = data.mapMaxColumn;
+  state.mapMaxRow = data.mapMaxRow;
+  const legacyLayer = data.tiles
+    ? [
+        {
+          id: "legacy-layer",
+          name: "Layer 1",
+          visible: true,
+          tiles: data.tiles,
+        },
+      ]
+    : [];
+  initializeLayersFromData(
+    data.layers && data.layers.length ? data.layers : legacyLayer,
+    data.activeLayerIndex ?? 0
+  );
+  saveMap();
 }
 
 export function exportMap() {

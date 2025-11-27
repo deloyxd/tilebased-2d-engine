@@ -54,7 +54,13 @@ export function togglePlayMode() {
 
 function setEditorButtonsVisibility(shouldHide) {
   const displayValue = shouldHide ? "none" : "";
-  ["importBtn", "exportBtn", "resetBtn"].forEach((key) => {
+  [
+    "importBtn",
+    "exportBtn",
+    "resetBtn",
+    "saveAsLevelBtn",
+    "showAllLevelsBtn",
+  ].forEach((key) => {
     const button = state.dom[key];
     if (button) {
       button.style.display = displayValue;

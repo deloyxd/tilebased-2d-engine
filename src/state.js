@@ -89,6 +89,11 @@ const state = {
     resetBtn: null,
     importFileInput: null,
     testBtn: null,
+    saveAsLevelBtn: null,
+    showAllLevelsBtn: null,
+    levelModal: null,
+    levelModalClose: null,
+    levelModalContent: null,
   },
   gameplay: {
     isPlaying: false,
