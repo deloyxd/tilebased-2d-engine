@@ -1,6 +1,7 @@
 import state from "../state.js";
 import { saveMap } from "./storage.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
+import { saveStateToUndo } from "./history.js";
 
 export function importMap(file) {
   const reader = new FileReader();
@@ -12,6 +13,32 @@ export function importMap(file) {
 }
 
 export function importMapFromData(data) {
+  state.originalMapData = JSON.parse(JSON.stringify(data));
+  state.mapMaxColumn = data.mapMaxColumn;
+  state.mapMaxRow = data.mapMaxRow;
+  const legacyLayer = data.tiles
+    ? [
+        {
+          id: "legacy-layer",
+          name: "Layer 1",
+          visible: true,
+          tiles: data.tiles,
+        },
+      ]
+    : [];
+  initializeLayersFromData(
+    data.layers && data.layers.length ? data.layers : legacyLayer,
+    data.activeLayerIndex ?? 0
+  );
+  saveMap();
+}
+
+export function revertToOriginalMap() {
+  saveStateToUndo();
+  if (!state.originalMapData) {
+    return;
+  }
+  const data = state.originalMapData;
   state.mapMaxColumn = data.mapMaxColumn;
   state.mapMaxRow = data.mapMaxRow;
   const legacyLayer = data.tiles

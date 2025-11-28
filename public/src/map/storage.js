@@ -16,6 +16,7 @@ export function loadMap() {
   }
 
   const data = JSON.parse(savedMap);
+  state.originalMapData = JSON.parse(JSON.stringify(data));
   state.mapMaxColumn = data.mapMaxColumn;
   state.mapMaxRow = data.mapMaxRow;
   const legacyLayer = data.tiles

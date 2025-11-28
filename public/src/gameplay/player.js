@@ -90,6 +90,9 @@ function setEditorButtonsVisibility(shouldHide) {
   if (state.dom.exportBtn) {
     state.dom.exportBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";
   }
+  if (state.dom.revertBtn) {
+    state.dom.revertBtn.style.display = shouldHide || isMapEmpty() || !state.originalMapData ? "none" : "";
+  }
   const saveAsLevelBtn = state.dom.saveAsLevelBtn;
   if (saveAsLevelBtn) {
     saveAsLevelBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";

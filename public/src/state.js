@@ -95,11 +95,13 @@ const state = {
     levelModal: null,
     levelModalClose: null,
     levelModalContent: null,
+    revertBtn: null,
   },
   lastLoadedLevel: {
     id: null,
     author: null,
   },
+  originalMapData: null,
   gameplay: {
     isPlaying: false,
     input: {

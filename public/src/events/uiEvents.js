@@ -1,7 +1,6 @@
 import state from "../state.js";
-import { resetHistory } from "../map/history.js";
-import { importMap, exportMap, importMapFromData } from "../map/io.js";
-import { resetMap, saveLastLoadedLevel, saveMap } from "../map/storage.js";
+import { importMap, exportMap, importMapFromData, revertToOriginalMap } from "../map/io.js";
+import { resetMap, saveLastLoadedLevel } from "../map/storage.js";
 import { togglePlayMode, resetPlayerState } from "../gameplay/player.js";
 import {
   initFirestore,
@@ -65,6 +64,10 @@ export function updateSaveButtonVisibility() {
   if (dom.exportBtn && !state.gameplay.isPlaying) {
     dom.exportBtn.style.display = isEmpty ? "none" : "";
   }
+
+  if (dom.revertBtn && !state.gameplay.isPlaying) {
+    dom.revertBtn.style.display = !isEmpty && state.originalMapData ? "" : "none";
+  }
 }
 
 export function registerUIEvents() {
@@ -91,8 +94,18 @@ export function registerUIEvents() {
 
   dom.exportBtn.addEventListener("click", exportMap);
 
+  if (dom.revertBtn) {
+    dom.revertBtn.addEventListener("click", () => {
+      const confirmed = confirm("Are you sure you want to reset to the original map data?");
+      if (confirmed) {
+        revertToOriginalMap();
+        updateSaveButtonVisibility();
+      }
+    });
+  }
+
   dom.resetBtn.addEventListener("click", () => {
-    const confirmed = confirm("Are you sure you want to reset the map?");
+    const confirmed = confirm("Are you sure you want to clear the map?");
     if (confirmed) {
       resetMap();
       updateSaveButtonVisibility();
@@ -105,7 +118,6 @@ export function registerUIEvents() {
         initFirestore();
         await setLevelNotBeingEdited(state.lastLoadedLevel.id);
       }
-      resetHistory();
       importMap(e.target.files[0]);
       state.lastLoadedLevel.id = null;
       state.lastLoadedLevel.author = null;
@@ -646,7 +658,6 @@ async function handleShowAllLevels() {
         );
         if (confirmed) {
           dom.levelModal.style.display = "none";
-          resetHistory();
           importMapFromData(level.mapData);
           await setLevelNotBeingEdited(levelId);
           await setLevelBeingEdited(levelId);

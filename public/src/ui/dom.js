@@ -25,6 +25,7 @@ export function initDomReferences() {
   state.dom.levelModal = document.getElementById("levelModal");
   state.dom.levelModalClose = document.getElementById("levelModalClose");
   state.dom.levelModalContent = document.getElementById("levelModalContent");
+  state.dom.revertBtn = document.getElementById("revertBtn");
 
   return state;
 }
