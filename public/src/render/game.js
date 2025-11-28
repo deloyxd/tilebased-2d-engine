@@ -10,9 +10,25 @@ export function displayLoading() {
 }
 
 export function displayGame() {
+  if (state.gameplay.isPlaying) {
+    state.ctx.save();
+    const zoom = state.camera.zoom;
+    const canvas = state.canvas;
+
+    state.ctx.translate(canvas.width / 2, canvas.height / 2);
+    state.ctx.scale(zoom, zoom);
+    state.ctx.translate(-canvas.width / 2 / zoom, -canvas.height / 2 / zoom);
+
+    state.ctx.translate(-state.camera.x, -state.camera.y);
+  }
+
   displayBackground();
   displayGameMap();
   drawPlayer();
+
+  if (state.gameplay.isPlaying) {
+    state.ctx.restore();
+  }
 }
 
 export function displayInfo() {

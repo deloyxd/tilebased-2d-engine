@@ -77,6 +77,7 @@ export async function saveLevelToFirestore(author) {
       level: 0,
       mapData: mapData,
       isBeingEdited: true,
+      isBeingPlayed: false,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
@@ -233,6 +234,48 @@ export async function setLevelNotBeingEdited(levelId) {
     return true;
   } catch (error) {
     console.error("Error setting level not being edited:", error);
+    return false;
+  }
+}
+
+export async function setLevelBeingPlayed(levelId) {
+  if (!db) {
+    initFirestore();
+    if (!db) {
+      alert("Firebase not initialized");
+      return false;
+    }
+  }
+
+  try {
+    const docRef = doc(db, "levels", levelId);
+    await updateDoc(docRef, {
+      isBeingPlayed: true,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error setting level being played:", error);
+    return false;
+  }
+}
+
+export async function setLevelNotBeingPlayed(levelId) {
+  if (!db) {
+    initFirestore();
+    if (!db) {
+      alert("Firebase not initialized");
+      return false;
+    }
+  }
+
+  try {
+    const docRef = doc(db, "levels", levelId);
+    await updateDoc(docRef, {
+      isBeingPlayed: false,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error setting level not being played:", error);
     return false;
   }
 }

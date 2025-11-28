@@ -22,6 +22,8 @@ import {
   getLevelById,
   setLevelBeingEdited,
   setLevelNotBeingEdited,
+  setLevelBeingPlayed,
+  setLevelNotBeingPlayed,
 } from "../map/firestore.js";
 import { displayBackground } from "../render/game.js";
 import { API_BASE_URL } from "../config.js";
@@ -68,6 +70,8 @@ export function hideLandingPage() {
   dom.landingPage.style.display = "none";
   if (dom.exitMapBtn) {
     dom.exitMapBtn.style.display = "";
+    const isPlayMode = state.gameplay.playMode.isActive;
+    dom.exitMapBtn.textContent = isPlayMode ? "Quit" : "Exit Editor";
   }
   hideLandingPageLoading();
 }
@@ -91,9 +95,14 @@ export function exitMap() {
   if (state.lastLoadedLevel.id) {
     initFirestore();
     setLevelNotBeingEdited(state.lastLoadedLevel.id).catch(console.error);
+    setLevelNotBeingPlayed(state.lastLoadedLevel.id).catch(console.error);
   }
   state.lastLoadedLevel.id = null;
   state.lastLoadedLevel.author = null;
+  state.lastLoadedLevel.mode = null;
+  state.gameplay.playMode.isActive = false;
+  state.gameplay.playMode.levels = [];
+  state.gameplay.playMode.currentLevelIndex = -1;
   saveLastLoadedLevel();
   resetMap();
   showLandingPage();
@@ -102,7 +111,10 @@ export function exitMap() {
 }
 
 function shouldExitEditor() {
-  const defaultMessage = "Are you sure you want to exit the editor?";
+  const isPlayMode = state.gameplay.playMode.isActive;
+  const defaultMessage = isPlayMode
+    ? "Are you sure you want to quit?"
+    : "Are you sure you want to exit the editor?";
   const hasLoadedMap = Boolean(state.originalMapData);
   const hasUnsavedChanges = hasLoadedMap && isMapModifiedFromOriginal();
   const message = hasUnsavedChanges
@@ -117,6 +129,7 @@ export function updateSaveButtonVisibility() {
   const isEmpty = isMapEmpty();
   const hasLoadedLevel =
     state.lastLoadedLevel.id && state.lastLoadedLevel.author;
+  const isPlayMode = state.gameplay.playMode.isActive;
 
   if (dom.saveLevelBtn) {
     dom.saveLevelBtn.style.display = !isEmpty && hasLoadedLevel ? "" : "none";
@@ -136,6 +149,10 @@ export function updateSaveButtonVisibility() {
 
   if (dom.revertBtn && !state.gameplay.isPlaying) {
     dom.revertBtn.style.display = state.originalMapData ? "" : "none";
+  }
+
+  if (dom.exitMapBtn && dom.exitMapBtn.style.display !== "none") {
+    dom.exitMapBtn.textContent = isPlayMode ? "Quit" : "Exit Editor";
   }
 }
 
@@ -177,7 +194,7 @@ export function registerUIEvents() {
   if (dom.revertBtn) {
     dom.revertBtn.addEventListener("click", () => {
       const confirmed = confirm(
-        "Are you sure you want to reset to the original map data?"
+        "Are you sure you want to reset to the original map data?",
       );
       if (confirmed) {
         revertToOriginalMap();
@@ -203,6 +220,7 @@ export function registerUIEvents() {
       importMap(e.target.files[0]);
       state.lastLoadedLevel.id = null;
       state.lastLoadedLevel.author = null;
+      state.lastLoadedLevel.mode = null;
       saveLastLoadedLevel();
       hideLandingPage();
       updateSaveButtonVisibility();
@@ -228,7 +246,7 @@ export function registerUIEvents() {
         dom.levelModal.style.display = "none";
         const selectAllBtn = document.getElementById("selectAllLevelsBtn");
         const deleteSelectedBtn = document.getElementById(
-          "deleteSelectedLevelsBtn"
+          "deleteSelectedLevelsBtn",
         );
         if (selectAllBtn) {
           selectAllBtn.style.display = "none";
@@ -247,7 +265,7 @@ export function registerUIEvents() {
         dom.levelModal.style.display = "none";
         const selectAllBtn = document.getElementById("selectAllLevelsBtn");
         const deleteSelectedBtn = document.getElementById(
-          "deleteSelectedLevelsBtn"
+          "deleteSelectedLevelsBtn",
         );
         if (selectAllBtn) {
           selectAllBtn.style.display = "none";
@@ -269,9 +287,7 @@ export function registerUIEvents() {
   }
 
   if (dom.playGameBtn) {
-    dom.playGameBtn.addEventListener("click", () => {
-      // TODO
-    });
+    dom.playGameBtn.addEventListener("click", handlePlayGame);
   }
 
   if (dom.editLevelsBtn) {
@@ -283,6 +299,107 @@ export function registerUIEvents() {
   }
 
   updateSaveButtonVisibility();
+}
+
+async function handlePlayGame() {
+  if (!dom.playGameBtn) return;
+
+  const originalButtonText = dom.playGameBtn.textContent;
+  dom.playGameBtn.disabled = true;
+  dom.playGameBtn.textContent = "Loading...";
+
+  try {
+    showLandingPageLoading();
+    initFirestore();
+    const allLevels = await getAllLevels();
+
+    if (allLevels.length === 0) {
+      alert("No levels found. Please create some levels first.");
+      hideLandingPageLoading();
+      return;
+    }
+
+    const playableLevels = allLevels
+      .filter((level) => level.level && level.level > 0 && !level.isBeingEdited)
+      .sort((a, b) => (a.level || 0) - (b.level || 0));
+
+    if (playableLevels.length === 0) {
+      alert("There are no levels yet!");
+      hideLandingPageLoading();
+      return;
+    }
+
+    state.gameplay.playMode.isActive = true;
+    state.gameplay.playMode.levels = playableLevels;
+    state.gameplay.playMode.currentLevelIndex = 0;
+
+    await loadLevelForPlay(playableLevels[0]);
+    hideLandingPage();
+    hideLandingPageLoading();
+  } catch (error) {
+    console.error("Error starting play game:", error);
+    alert("Error starting game: " + error.message);
+    hideLandingPageLoading();
+  } finally {
+    dom.playGameBtn.disabled = false;
+    dom.playGameBtn.textContent = originalButtonText;
+  }
+}
+
+async function loadLevelForPlay(level) {
+  if (!level || !level.mapData) {
+    alert("Level data is missing.");
+    return;
+  }
+
+  if (level.isBeingEdited === true) {
+    alert("This level is currently being edited and cannot be played.");
+    return;
+  }
+
+  if (state.lastLoadedLevel.id && state.lastLoadedLevel.id !== level.id) {
+    await setLevelNotBeingEdited(state.lastLoadedLevel.id);
+    await setLevelNotBeingPlayed(state.lastLoadedLevel.id);
+  }
+
+  importMapFromData(level.mapData);
+  state.lastLoadedLevel.id = level.id;
+  state.lastLoadedLevel.author = level.author || null;
+  saveLastLoadedLevel();
+  updateSaveButtonVisibility();
+
+  await setLevelBeingPlayed(level.id);
+
+  if (!state.gameplay.isPlaying) {
+    togglePlayMode();
+  } else {
+    resetPlayerState();
+  }
+}
+
+export async function proceedToNextLevel() {
+  if (!state.gameplay.playMode.isActive) {
+    return false;
+  }
+
+  const playMode = state.gameplay.playMode;
+  const nextIndex = playMode.currentLevelIndex + 1;
+
+  if (nextIndex >= playMode.levels.length) {
+    alert("Congratulations! You have completed all levels!");
+    state.gameplay.playMode.isActive = false;
+    state.gameplay.playMode.levels = [];
+    state.gameplay.playMode.currentLevelIndex = -1;
+    if (state.gameplay.isPlaying) {
+      togglePlayMode();
+    }
+    exitMap();
+    return false;
+  }
+
+  playMode.currentLevelIndex = nextIndex;
+  await loadLevelForPlay(playMode.levels[nextIndex]);
+  return true;
 }
 
 async function handleSaveAsLevel() {
@@ -306,7 +423,7 @@ async function handleSaveAsLevel() {
 
     if (authors.length === 0) {
       alert(
-        "No authors configured. Please add authors in src/map/firestore.js"
+        "No authors configured. Please add authors in src/map/firestore.js",
       );
       return;
     }
@@ -315,7 +432,7 @@ async function handleSaveAsLevel() {
       .map((author, index) => `${index + 1}. ${author}`)
       .join("\n");
     const userInput = prompt(
-      `Select an author:\n\n${authorOptions}\n\nEnter number (1-${authors.length}):`
+      `Select an author:\n\n${authorOptions}\n\nEnter number (1-${authors.length}):`,
     );
 
     if (!userInput) return;
@@ -369,7 +486,7 @@ async function handleSaveLevel() {
   try {
     if (!state.lastLoadedLevel.id || !state.lastLoadedLevel.author) {
       alert(
-        "No map loaded. Please load a map first using 'Load Map' > 'Import Map'."
+        "No map loaded. Please load a map first using 'Load Map' > 'Import Map'.",
       );
       return;
     }
@@ -383,7 +500,7 @@ async function handleSaveLevel() {
 
     if (enteredName !== mapAuthor) {
       alert(
-        "Name does not match the author of the loaded map. Update cancelled."
+        "Name does not match the author of the loaded map. Update cancelled.",
       );
       return;
     }
@@ -393,7 +510,7 @@ async function handleSaveLevel() {
 
     if (!existingLevel) {
       alert(
-        "This map was deleted from the database moments ago. It will now be saved as a new map."
+        "This map was deleted from the database moments ago. It will now be saved as a new map.",
       );
       const levelId = await saveLevelToFirestore(state.lastLoadedLevel.author);
 
@@ -533,7 +650,6 @@ async function handleEditLevels() {
     while (!isAuthenticated) {
       try {
         const password = await showPasswordModal();
-        // Show loading state after modal closes and before login request
         showLandingPageLoading();
         await loginWithPassword(password);
         isAuthenticated = true;
@@ -541,7 +657,6 @@ async function handleEditLevels() {
         if (error === "Cancelled") {
           throw error;
         }
-        // Hide loading state on error so user can see the alert
         hideLandingPageLoading();
         alert(error.message || "Login failed. Please try again.");
       }
@@ -568,13 +683,14 @@ async function handleCreateNewMap() {
   state.originalMapData = null;
   state.lastLoadedLevel.id = null;
   state.lastLoadedLevel.author = null;
+  state.lastLoadedLevel.mode = null;
   saveLastLoadedLevel();
   resetMap();
   if (dom.levelModal) {
     dom.levelModal.style.display = "none";
     const selectAllBtn = document.getElementById("selectAllLevelsBtn");
     const deleteSelectedBtn = document.getElementById(
-      "deleteSelectedLevelsBtn"
+      "deleteSelectedLevelsBtn",
     );
     if (selectAllBtn) {
       selectAllBtn.style.display = "none";
@@ -621,18 +737,25 @@ async function handleShowAllLevels(hideCheckboxes = false) {
         : "Unknown";
       const isCurrentlyLoaded = level.id === state.lastLoadedLevel.id;
       const isBeingEdited = level.isBeingEdited === true || isCurrentlyLoaded;
+      const isBeingPlayed = level.isBeingPlayed === true;
       if (level.isBeingEdited === false && isCurrentlyLoaded) {
         setLevelBeingEdited(level.id);
       }
-      const rowOpacity = isCurrentlyLoaded || isBeingEdited ? "0.5" : "1";
+      const rowOpacity =
+        isCurrentlyLoaded || isBeingEdited || isBeingPlayed ? "0.5" : "1";
       const checkboxDisplay =
-        hideCheckboxes || isCurrentlyLoaded || isBeingEdited ? "none" : "block";
+        hideCheckboxes || isCurrentlyLoaded || isBeingEdited || isBeingPlayed
+          ? "none"
+          : "block";
       const importButtonDisplay =
-        isCurrentlyLoaded || isBeingEdited ? "none" : "block";
+        isCurrentlyLoaded || isBeingEdited || isBeingPlayed ? "none" : "block";
       const beingEditedIndicator = isBeingEdited
         ? `<div style="color: #ff9800; font-weight: bold; margin-top: 5px;">⚠️ Being Edited${
             isCurrentlyLoaded ? " (by You)" : " (by Someone Else)"
           }</div>`
+        : "";
+      const beingPlayedIndicator = isBeingPlayed
+        ? `<div style="color: #2196f3; font-weight: bold; margin-top: 5px;">🎮 Being Played</div>`
         : "";
 
       html += `
@@ -677,6 +800,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
               <br>
               <div>ID: ${id}</div>
               ${beingEditedIndicator}
+              ${beingPlayedIndicator}
             </div>
           </div>
           <div style="
@@ -736,7 +860,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
 
     const selectAllBtn = document.getElementById("selectAllLevelsBtn");
     const deleteSelectedBtn = document.getElementById(
-      "deleteSelectedLevelsBtn"
+      "deleteSelectedLevelsBtn",
     );
     const checkboxes =
       dom.levelModalContent.querySelectorAll(".level-checkbox");
@@ -759,7 +883,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
       const currentImportButtons =
         dom.levelModalContent.querySelectorAll(".import-level-btn");
       const selectableCheckboxes = Array.from(currentCheckboxes).filter(
-        (cb) => cb.style.display !== "none"
+        (cb) => cb.style.display !== "none",
       );
       const hasSelection = selectableCheckboxes.some((cb) => cb.checked);
       const allChecked =
@@ -805,7 +929,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
                 levelId !== state.lastLoadedLevel.id &&
                 cb.style.display !== "none"
               );
-            }
+            },
           );
           const allChecked =
             selectableCheckboxes.length > 0 &&
@@ -838,7 +962,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
               .map((id) => levels.find((l) => l.id === id))
               .filter(Boolean);
             const beingEditedLevels = levelsToDelete.filter(
-              (level) => level.isBeingEdited === true
+              (level) => level.isBeingEdited === true,
             );
 
             if (beingEditedLevels.length > 0) {
@@ -847,7 +971,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
                   beingEditedLevels.length > 1 ? "s" : ""
                 } that ${
                   beingEditedLevels.length > 1 ? "are" : "is"
-                } currently being edited.`
+                } currently being edited.`,
               );
               return;
             }
@@ -865,7 +989,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
             const confirmed = confirm(
               `This will permanently delete ${count} level design${
                 count > 1 ? "s" : ""
-              }. Are you absolutely sure?`
+              }. Are you absolutely sure?`,
             );
 
             if (!confirmed) {
@@ -894,13 +1018,13 @@ async function handleShowAllLevels(hideCheckboxes = false) {
                         failCount > 1 ? "s" : ""
                       }.`
                     : ""
-                }`
+                }`,
               );
               await handleShowAllLevels(false);
               const selectAllBtn =
                 document.getElementById("selectAllLevelsBtn");
               const deleteSelectedBtn = document.getElementById(
-                "deleteSelectedLevelsBtn"
+                "deleteSelectedLevelsBtn",
               );
               if (selectAllBtn) {
                 selectAllBtn.style.display = "none";
@@ -911,10 +1035,10 @@ async function handleShowAllLevels(hideCheckboxes = false) {
               }
             } else {
               alert(
-                `Failed to delete level design${failCount > 1 ? "s" : ""}.`
+                `Failed to delete level design${failCount > 1 ? "s" : ""}.`,
               );
             }
-          }
+          },
         );
       }
       selectionHandlersInitialized = true;
@@ -929,7 +1053,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
 
         if (!level) {
           alert(
-            "This level no longer exists in the database. Please refresh the list."
+            "This level no longer exists in the database. Please refresh the list.",
           );
           await handleShowAllLevels(hideCheckboxes);
           return;
@@ -945,11 +1069,16 @@ async function handleShowAllLevels(hideCheckboxes = false) {
           return;
         }
 
+        if (level.isBeingPlayed === true) {
+          alert("This level is currently being played and cannot be edited.");
+          return;
+        }
+
         if (hideCheckboxes) {
           continueOpenMap();
         } else {
           const confirmed = confirm(
-            "Open this level? This will replace your current map."
+            "Open this level? This will replace your current map.",
           );
           if (confirmed) {
             continueOpenMap();
@@ -960,6 +1089,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
           dom.levelModal.style.display = "none";
           importMapFromData(level.mapData);
           await setLevelNotBeingEdited(levelId);
+          await setLevelNotBeingPlayed(levelId);
           await setLevelBeingEdited(levelId);
           state.lastLoadedLevel.id = level.id;
           state.lastLoadedLevel.author = level.author || null;
@@ -988,10 +1118,10 @@ function renderLevelPreview(mapData, index) {
   }
 
   const canvas = dom.levelModalContent.querySelector(
-    `.level-preview-canvas[data-level-index="${index}"]`
+    `.level-preview-canvas[data-level-index="${index}"]`,
   );
   const loadingDiv = dom.levelModalContent.querySelector(
-    `.level-preview-loading[data-level-index="${index}"]`
+    `.level-preview-loading[data-level-index="${index}"]`,
   );
 
   if (!canvas || !loadingDiv) return;
@@ -1059,7 +1189,7 @@ function renderLevelPreview(mapData, index) {
         destX,
         destY,
         destSize,
-        destSize
+        destSize,
       );
     }
   }

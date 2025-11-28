@@ -13,6 +13,7 @@ import {
   initFirestore,
   getLevelById,
   setLevelBeingEdited,
+  setLevelNotBeingPlayed,
 } from "./firestore.js";
 import { importMapFromData } from "./io.js";
 
@@ -24,6 +25,16 @@ export async function loadMap() {
   loadLastLoadedLevel();
 
   if (state.lastLoadedLevel.id) {
+    if (state.lastLoadedLevel.mode === "play") {
+      state.lastLoadedLevel.id = null;
+      state.lastLoadedLevel.author = null;
+      state.lastLoadedLevel.mode = null;
+      localStorage.removeItem("lastLoadedLevel");
+      showLandingPage();
+      hideLandingPageLoading();
+      return;
+    }
+
     showLandingPageLoading();
     showLandingPage();
     try {
@@ -32,9 +43,11 @@ export async function loadMap() {
 
       if (level && level.mapData) {
         importMapFromData(level.mapData);
+        await setLevelNotBeingPlayed(level.id);
         await setLevelBeingEdited(level.id);
         state.lastLoadedLevel.id = level.id;
         state.lastLoadedLevel.author = level.author || null;
+        state.lastLoadedLevel.mode = "editor";
         saveLastLoadedLevel();
         updateSaveButtonVisibility();
         return;
@@ -90,21 +103,25 @@ export function loadLastLoadedLevel() {
       const data = JSON.parse(saved);
       state.lastLoadedLevel.id = data.id || null;
       state.lastLoadedLevel.author = data.author || null;
+      state.lastLoadedLevel.mode = data.mode || null;
     } catch (error) {
       console.error("Error loading lastLoadedLevel:", error);
       state.lastLoadedLevel.id = null;
       state.lastLoadedLevel.author = null;
+      state.lastLoadedLevel.mode = null;
     }
   }
 }
 
 export function saveLastLoadedLevel() {
   if (state.lastLoadedLevel.id && state.lastLoadedLevel.author) {
+    const mode = state.gameplay.playMode.isActive ? "play" : "editor";
     localStorage.setItem(
       "lastLoadedLevel",
       JSON.stringify({
         id: state.lastLoadedLevel.id,
         author: state.lastLoadedLevel.author,
+        mode: mode,
       }),
     );
   } else {

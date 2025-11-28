@@ -186,6 +186,11 @@ export function registerInputEvents() {
   });
 
   document.addEventListener("mousemove", (e) => {
+    if (state.gameplay.isPlaying && e.target.id === "screen") {
+      state.pointer.x = e.clientX;
+      state.pointer.y = e.clientY;
+    }
+
     if (e.target.id === "screen" && state.loadedImages["tileset"]) {
       updatePaletteHeader(
         `| Selected tile #${editing.selectedTileIndex} | ${getTileTypeLabel(

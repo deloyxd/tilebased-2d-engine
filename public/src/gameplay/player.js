@@ -78,12 +78,19 @@ export function togglePlayMode() {
 
 function setEditorButtonsVisibility(shouldHide) {
   const displayValue = shouldHide ? "none" : "";
+  const isPlayMode = state.gameplay.playMode.isActive;
+
   ["importBtn", "showAllLevelsBtn"].forEach((key) => {
     const button = state.dom[key];
     if (button) {
       button.style.display = displayValue;
     }
   });
+
+  if (state.dom.testBtn) {
+    state.dom.testBtn.style.display = isPlayMode ? "none" : displayValue;
+  }
+
   if (state.dom.resetBtn) {
     state.dom.resetBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";
   }
@@ -97,6 +104,9 @@ function setEditorButtonsVisibility(shouldHide) {
   }
   if (state.dom.exitMapBtn) {
     state.dom.exitMapBtn.style.display = shouldHide ? "none" : "";
+    if (state.dom.exitMapBtn.style.display !== "none") {
+      state.dom.exitMapBtn.textContent = isPlayMode ? "Quit" : "Exit Editor";
+    }
   }
   const saveAsLevelBtn = state.dom.saveAsLevelBtn;
   if (saveAsLevelBtn) {
@@ -155,9 +165,10 @@ export function updatePlayer(deltaSeconds = 0) {
   if (!resolveHorizontalCollisions(nextX, tileSize)) {
     player.position.x = nextX;
   }
+  const mapWidth = state.mapMaxColumn * tileSize;
   player.position.x = Math.max(
     0,
-    Math.min(player.position.x, state.canvas.width - player.width),
+    Math.min(player.position.x, mapWidth - player.width),
   );
 
   if (player.isClimbing) {
@@ -212,8 +223,9 @@ export function updatePlayer(deltaSeconds = 0) {
     }
   }
 
-  if (player.position.y + player.height >= state.canvas.height) {
-    player.position.y = state.canvas.height - player.height;
+  const mapHeight = state.mapMaxRow * tileSize;
+  if (player.position.y + player.height >= mapHeight) {
+    player.position.y = mapHeight - player.height;
     player.velocity.y = 0;
     player.onGround = true;
   }
@@ -287,6 +299,69 @@ export function resetPlayerState() {
   state.player.climbAxis = null;
   state.player.climbTile = null;
   state.player.isSwimming = false;
+
+  if (state.gameplay.isPlaying && state.canvas) {
+    const playerCenterX = state.player.position.x + state.player.width / 2;
+    const playerCenterY = state.player.position.y + state.player.height / 2;
+    const zoom = state.camera.zoom;
+    const scaledCanvasWidth = state.canvas.width / zoom;
+    const scaledCanvasHeight = state.canvas.height / zoom;
+    state.camera.x = playerCenterX - scaledCanvasWidth / 2;
+    state.camera.y = playerCenterY - scaledCanvasHeight / 2;
+  }
+}
+
+export function updateCamera(deltaSeconds = 0) {
+  if (!state.gameplay.isPlaying || !state.canvas) return;
+
+  const dt = Math.max(deltaSeconds, 0);
+  const player = state.player;
+  const canvas = state.canvas;
+  const tileSize = state.tiles.size || 1;
+  const zoom = state.camera.zoom;
+
+  const mapWidth = state.mapMaxColumn * tileSize;
+  const mapHeight = state.mapMaxRow * tileSize;
+
+  const playerCenterX = player.position.x + player.width / 2;
+  const playerCenterY = player.position.y + player.height / 2;
+
+  const canvasRect = canvas.getBoundingClientRect();
+  const mouseX = state.pointer.x - canvasRect.left;
+  const mouseY = state.pointer.y - canvasRect.top;
+
+  const canvasCenterX = canvas.width / 2;
+  const canvasCenterY = canvas.height / 2;
+
+  const mouseOffsetX =
+    canvas.width > 0 ? ((mouseX - canvasCenterX) / canvasCenterX) * 0.3 : 0;
+  const mouseOffsetY =
+    canvas.height > 0 ? ((mouseY - canvasCenterY) / canvasCenterY) * 0.3 : 0;
+
+  const scaledCanvasWidth = canvas.width / zoom;
+  const scaledCanvasHeight = canvas.height / zoom;
+  const targetCameraX =
+    playerCenterX -
+    scaledCanvasWidth / 2 +
+    mouseOffsetX * scaledCanvasWidth * 0.2;
+  const targetCameraY =
+    playerCenterY -
+    scaledCanvasHeight / 2 +
+    mouseOffsetY * scaledCanvasHeight * 0.2;
+
+  const cameraLerpSpeed = 8.0;
+  const lerpFactor = 1 - Math.exp(-cameraLerpSpeed * dt);
+
+  state.camera.x += (targetCameraX - state.camera.x) * lerpFactor;
+  state.camera.y += (targetCameraY - state.camera.y) * lerpFactor;
+
+  const minCameraX = 0;
+  const maxCameraX = Math.max(0, mapWidth - scaledCanvasWidth);
+  const minCameraY = 0;
+  const maxCameraY = Math.max(0, mapHeight - scaledCanvasHeight);
+
+  state.camera.x = Math.max(minCameraX, Math.min(maxCameraX, state.camera.x));
+  state.camera.y = Math.max(minCameraY, Math.min(maxCameraY, state.camera.y));
 }
 
 function resolveHorizontalCollisions(nextX, tileSize) {

@@ -26,6 +26,7 @@ import {
   initPlayer,
   updatePlayer,
   togglePlayMode,
+  updateCamera,
 } from "../gameplay/player.js";
 
 let previousTimestamp = 0;
@@ -55,6 +56,7 @@ function gameLoop(timestamp = performance.now()) {
     displayLoading();
   } else {
     updatePlayer(deltaSeconds);
+    updateCamera(deltaSeconds);
     displayGame();
     if (state.editing.isEditing) {
       if (state.editing.isMoveSelecting || state.editing.isMoving) {

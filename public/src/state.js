@@ -110,6 +110,7 @@ const state = {
   lastLoadedLevel: {
     id: null,
     author: null,
+    mode: null,
   },
   originalMapData: null,
   gameplay: {
@@ -120,6 +121,11 @@ const state = {
       up: false,
       down: false,
       jump: false,
+    },
+    playMode: {
+      isActive: false,
+      levels: [],
+      currentLevelIndex: -1,
     },
   },
   player: {
@@ -139,6 +145,11 @@ const state = {
     climbAxis: null,
     climbTile: null,
     isSwimming: false,
+  },
+  camera: {
+    x: 0,
+    y: 0,
+    zoom: 2.0,
   },
 };
 
