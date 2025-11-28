@@ -533,12 +533,16 @@ async function handleEditLevels() {
     while (!isAuthenticated) {
       try {
         const password = await showPasswordModal();
+        // Show loading state after modal closes and before login request
+        showLandingPageLoading();
         await loginWithPassword(password);
         isAuthenticated = true;
       } catch (error) {
         if (error === "Cancelled") {
           throw error;
         }
+        // Hide loading state on error so user can see the alert
+        hideLandingPageLoading();
         alert(error.message || "Login failed. Please try again.");
       }
     }
