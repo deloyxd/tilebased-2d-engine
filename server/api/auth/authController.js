@@ -1,5 +1,5 @@
-const { signToken } = require("../utils/token");
-const { adminPassword, cookieName, isProduction } = require("../config/env");
+const { signToken } = require("../../utils/token");
+const { adminPassword, cookieName, isProduction } = require("../../config/env");
 
 function setAuthCookie(res, token) {
   res.cookie(cookieName, token, {

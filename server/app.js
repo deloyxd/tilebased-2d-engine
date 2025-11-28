@@ -1,31 +1,33 @@
 const express = require("express");
 const helmet = require("helmet");
-const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 
-const routes = require("./routes");
+const routes = require("./api");
 const config = require("./config/env");
 
 const app = express();
 
-const allowedOrigins = config.clientOrigins;
-const corsOptions = {
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  optionsSuccessStatus: 204,
-};
+const CLIENT_ORIGIN = [
+  "http://localhost:5500",
+  "https://islandventure.web.app",
+];
 
 app.disable("x-powered-by");
-app.use(cors(corsOptions));
 app.use(helmet());
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
