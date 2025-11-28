@@ -154,68 +154,120 @@ export function registerUIEvents() {
 }
 
 async function handleSaveAsLevel() {
-  initFirestore();
-  const authors = getAuthors();
+  if (!dom.saveAsLevelBtn) return;
 
-  if (authors.length === 0) {
-    alert("No authors configured. Please add authors in src/map/firestore.js");
-    return;
+  const originalSaveAsText = dom.saveAsLevelBtn.textContent;
+  const originalSaveText = dom.saveLevelBtn
+    ? dom.saveLevelBtn.textContent
+    : null;
+
+  dom.saveAsLevelBtn.disabled = true;
+  dom.saveAsLevelBtn.textContent = "Loading...";
+  if (dom.saveLevelBtn) {
+    dom.saveLevelBtn.disabled = true;
+    dom.saveLevelBtn.textContent = "Loading...";
   }
 
-  const authorOptions = authors
-    .map((author, index) => `${index + 1}. ${author}`)
-    .join("\n");
-  const userInput = prompt(
-    `Select an author:\n\n${authorOptions}\n\nEnter number (1-${authors.length}):`
-  );
+  try {
+    initFirestore();
+    const authors = getAuthors();
 
-  if (!userInput) return;
+    if (authors.length === 0) {
+      alert(
+        "No authors configured. Please add authors in src/map/firestore.js"
+      );
+      return;
+    }
 
-  const selectedIndex = parseInt(userInput) - 1;
-  if (
-    isNaN(selectedIndex) ||
-    selectedIndex < 0 ||
-    selectedIndex >= authors.length
-  ) {
-    alert("Invalid selection");
-    return;
-  }
+    const authorOptions = authors
+      .map((author, index) => `${index + 1}. ${author}`)
+      .join("\n");
+    const userInput = prompt(
+      `Select an author:\n\n${authorOptions}\n\nEnter number (1-${authors.length}):`
+    );
 
-  const selectedAuthor = authors[selectedIndex];
-  const levelId = await saveLevelToFirestore(selectedAuthor);
+    if (!userInput) return;
 
-  if (levelId) {
-    alert(`Level saved successfully! ID: ${levelId}`);
+    const selectedIndex = parseInt(userInput) - 1;
+    if (
+      isNaN(selectedIndex) ||
+      selectedIndex < 0 ||
+      selectedIndex >= authors.length
+    ) {
+      alert("Invalid selection");
+      return;
+    }
+
+    const selectedAuthor = authors[selectedIndex];
+    const levelId = await saveLevelToFirestore(selectedAuthor);
+
+    if (levelId) {
+      state.lastLoadedLevel.id = levelId;
+      state.lastLoadedLevel.author = selectedAuthor;
+      saveLastLoadedLevel();
+      updateSaveButtonVisibility();
+      alert(`Level saved successfully! ID: ${levelId}`);
+    }
+  } finally {
+    dom.saveAsLevelBtn.disabled = false;
+    dom.saveAsLevelBtn.textContent = originalSaveAsText;
+    if (dom.saveLevelBtn) {
+      dom.saveLevelBtn.disabled = false;
+      dom.saveLevelBtn.textContent = originalSaveText;
+    }
   }
 }
 
 async function handleSaveLevel() {
-  if (!state.lastLoadedLevel.id || !state.lastLoadedLevel.author) {
-    alert(
-      "No map loaded. Please load a map first using 'Load Map' > 'Import Map'."
-    );
-    return;
+  if (!dom.saveLevelBtn) return;
+
+  const originalSaveText = dom.saveLevelBtn.textContent;
+  const originalSaveAsText = dom.saveAsLevelBtn
+    ? dom.saveAsLevelBtn.textContent
+    : null;
+
+  dom.saveLevelBtn.disabled = true;
+  dom.saveLevelBtn.textContent = "Loading...";
+  if (dom.saveAsLevelBtn) {
+    dom.saveAsLevelBtn.disabled = true;
+    dom.saveAsLevelBtn.textContent = "Loading...";
   }
 
-  const userInput = prompt("Enter your full name to confirm:");
+  try {
+    if (!state.lastLoadedLevel.id || !state.lastLoadedLevel.author) {
+      alert(
+        "No map loaded. Please load a map first using 'Load Map' > 'Import Map'."
+      );
+      return;
+    }
 
-  if (!userInput) return;
+    const userInput = prompt("Enter your full name to confirm:");
 
-  const enteredName = userInput.trim();
-  const mapAuthor = state.lastLoadedLevel.author;
+    if (!userInput) return;
 
-  if (enteredName !== mapAuthor) {
-    alert(
-      "Name does not match the author of the loaded map. Update cancelled."
-    );
-    return;
-  }
+    const enteredName = userInput.trim().toLowerCase();
+    const mapAuthor = state.lastLoadedLevel.author.toLowerCase();
 
-  initFirestore();
-  const success = await updateLevelToFirestore(state.lastLoadedLevel.id);
+    if (enteredName !== mapAuthor) {
+      alert(
+        "Name does not match the author of the loaded map. Update cancelled."
+      );
+      return;
+    }
 
-  if (success) {
-    alert("Map updated successfully!");
+    initFirestore();
+    const success = await updateLevelToFirestore(state.lastLoadedLevel.id);
+
+    if (success) {
+      alert("Map updated successfully!");
+    }
+  } finally {
+    dom.saveLevelBtn.disabled = false;
+    dom.saveLevelBtn.textContent = originalSaveText;
+    if (dom.saveAsLevelBtn) {
+      dom.saveAsLevelBtn.disabled = false;
+      dom.saveAsLevelBtn.textContent = originalSaveAsText;
+    }
   }
 }
 
