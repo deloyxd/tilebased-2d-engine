@@ -503,7 +503,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
   if (!dom.showAllLevelsBtn || !dom.levelModal || !dom.levelModalContent)
     return;
 
-  console.log("hideCheckboxes", hideCheckboxes);
+  hideCheckboxes = hideCheckboxes === true;
   dom.createNewMapBtn.style.display = hideCheckboxes ? "block" : "none";
 
   const originalButtonText = dom.showAllLevelsBtn.textContent;
