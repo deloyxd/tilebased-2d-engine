@@ -9,18 +9,18 @@ const config = require("./config/env");
 
 const app = express();
 
-const allowedOrigins = Array.isArray(config.clientOrigins)
-  ? config.clientOrigins
-  : [config.clientOrigins].filter(Boolean);
-const allowAllOrigins = allowedOrigins.includes("*");
+const allowedOrigins = config.clientOrigins;
 const corsOptions = {
-  credentials: true,
   origin(origin, callback) {
-    if (allowAllOrigins || !origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error("Not allowed by CORS"));
   },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  optionsSuccessStatus: 204,
 };
 
 app.disable("x-powered-by");
@@ -36,12 +36,6 @@ app.use(
 );
 
 app.use("/api", routes);
-
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Credentials", "true");
-  next();
-});
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found." });
