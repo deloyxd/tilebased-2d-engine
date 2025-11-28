@@ -40,6 +40,10 @@ app.use(
   })
 );
 
+app.get("/", (req, res) => {
+  res.json({ message: "API is running" });
+});
+
 app.use("/api", routes);
 
 app.use((req, res) => {
