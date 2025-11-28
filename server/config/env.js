@@ -6,7 +6,7 @@ dotenv.config({ path: envPath });
 
 const CLIENT_ORIGIN = [
   "http://localhost:8080",
-  "https://islandventure.onrender.com",
+  "https://tilebased-2d-engine.onrender.com",
 ];
 
 const config = {
