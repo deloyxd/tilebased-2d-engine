@@ -1,5 +1,5 @@
 import state from "../state.js";
-import { resetHistory, resetHistory } from "../map/history.js";
+import { resetHistory } from "../map/history.js";
 import { importMap, exportMap, importMapFromData } from "../map/io.js";
 import { resetMap, saveLastLoadedLevel, saveMap } from "../map/storage.js";
 import { togglePlayMode, resetPlayerState } from "../gameplay/player.js";
