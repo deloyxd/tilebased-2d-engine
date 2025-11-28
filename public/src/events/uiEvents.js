@@ -299,15 +299,20 @@ async function handleShowAllLevels() {
       const updatedAt = level.updatedAt?.toDate
         ? level.updatedAt.toDate().toLocaleString()
         : "Unknown";
+      const isCurrentlyLoaded = level.id === state.lastLoadedLevel.id;
+      const rowOpacity = isCurrentlyLoaded ? "0.5" : "1";
+      const checkboxDisplay = isCurrentlyLoaded ? "none" : "block";
+      const importButtonDisplay = isCurrentlyLoaded ? "none" : "block";
 
       html += `
-        <div style="
+        <div class="level-row" data-level-id="${level.id}" style="
           border: 1px solid #666;
           padding: 15px;
           border-radius: 4px;
           background-color: #333;
           display: flex;
           gap: 15px;
+          opacity: ${rowOpacity};
         ">
           <div style="
             flex: 1;
@@ -323,6 +328,7 @@ async function handleShowAllLevels() {
                   width: 18px;
                   height: 18px;
                   cursor: pointer;
+                  display: ${checkboxDisplay};
                 "
               />
               <div>
@@ -382,6 +388,7 @@ async function handleShowAllLevels() {
                 border-radius: 4px;
                 font-size: 0.85em;
                 z-index: 10;
+                display: ${importButtonDisplay};
               "
             >
               Import Map
@@ -409,12 +416,13 @@ async function handleShowAllLevels() {
         dom.levelModalContent.querySelectorAll(".level-checkbox");
       const currentImportButtons =
         dom.levelModalContent.querySelectorAll(".import-level-btn");
-      const hasSelection = Array.from(currentCheckboxes).some(
-        (cb) => cb.checked
+      const selectableCheckboxes = Array.from(currentCheckboxes).filter(
+        (cb) => cb.style.display !== "none"
       );
-      const allChecked = Array.from(currentCheckboxes).every(
-        (cb) => cb.checked
-      );
+      const hasSelection = selectableCheckboxes.some((cb) => cb.checked);
+      const allChecked =
+        selectableCheckboxes.length > 0 &&
+        selectableCheckboxes.every((cb) => cb.checked);
       if (selectAllBtn) {
         selectAllBtn.style.display = hasSelection ? "block" : "none";
         if (hasSelection) {
@@ -425,7 +433,13 @@ async function handleShowAllLevels() {
         deleteSelectedBtn.style.display = hasSelection ? "block" : "none";
       }
       currentImportButtons.forEach((button) => {
-        button.style.display = hasSelection ? "none" : "block";
+        const levelId = button.getAttribute("data-level-id");
+        const isCurrentlyLoaded = levelId === state.lastLoadedLevel.id;
+        if (isCurrentlyLoaded) {
+          button.style.display = "none";
+        } else {
+          button.style.display = hasSelection ? "none" : "block";
+        }
       });
     }
 
@@ -438,10 +452,19 @@ async function handleShowAllLevels() {
         selectAllBtn.addEventListener("click", function selectAllHandler() {
           const currentCheckboxes =
             dom.levelModalContent.querySelectorAll(".level-checkbox");
-          const allChecked = Array.from(currentCheckboxes).every(
-            (cb) => cb.checked
+          const selectableCheckboxes = Array.from(currentCheckboxes).filter(
+            (cb) => {
+              const levelId = cb.getAttribute("data-level-id");
+              return (
+                levelId !== state.lastLoadedLevel.id &&
+                cb.style.display !== "none"
+              );
+            }
           );
-          currentCheckboxes.forEach((checkbox) => {
+          const allChecked =
+            selectableCheckboxes.length > 0 &&
+            selectableCheckboxes.every((cb) => cb.checked);
+          selectableCheckboxes.forEach((checkbox) => {
             checkbox.checked = !allChecked;
           });
           if (selectAllBtn) {
