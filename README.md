@@ -3,31 +3,30 @@ run: https://islandventure.web.app/
 assets used: https://kenney-assets.itch.io/pixel-platformer
 
 license:
-	
 
-	Pixel Platformer (1.2)
+    Pixel Platformer (1.2)
 
-	Created/distributed by Kenney (www.kenney.nl)
-	Creation date: 07-10-2023
+    Created/distributed by Kenney (www.kenney.nl)
+    Creation date: 07-10-2023
 
-			------------------------------
+    		------------------------------
 
-	License: (Creative Commons Zero, CC0)
-	http://creativecommons.org/publicdomain/zero/1.0/
+    License: (Creative Commons Zero, CC0)
+    http://creativecommons.org/publicdomain/zero/1.0/
 
-	You can use this content for personal, educational, and commercial purposes.
+    You can use this content for personal, educational, and commercial purposes.
 
-	Support by crediting 'Kenney' or 'www.kenney.nl' (this is not a requirement)
+    Support by crediting 'Kenney' or 'www.kenney.nl' (this is not a requirement)
 
-			------------------------------
+    		------------------------------
 
-	• Website : www.kenney.nl
-	• Donate  : www.kenney.nl/donate
+    • Website : www.kenney.nl
+    • Donate  : www.kenney.nl/donate
 
-	• Patreon : patreon.com/kenney
-	
-	Follow on social media for updates:
+    • Patreon : patreon.com/kenney
 
-	• Twitter:	twitter.com/KenneyNL
-	• Instagram: 	instagram.com/kenney_nl
-	• Mastodon:	mastodon.gamedev.place/@kenney
+    Follow on social media for updates:
+
+    • Twitter:	twitter.com/KenneyNL
+    • Instagram: 	instagram.com/kenney_nl
+    • Mastodon:	mastodon.gamedev.place/@kenney

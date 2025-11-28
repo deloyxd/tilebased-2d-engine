@@ -1,6 +1,9 @@
 import state from "../state.js";
 import { initDomReferences } from "../ui/dom.js";
-import { registerUIEvents, updateSaveButtonVisibility } from "../events/uiEvents.js";
+import {
+  registerUIEvents,
+  updateSaveButtonVisibility,
+} from "../events/uiEvents.js";
 import {
   registerInputEvents,
   selectBrush,
@@ -19,7 +22,11 @@ import {
 } from "../palette/palette.js";
 import { resizeLayers } from "../tiles/layers.js";
 import { registerPlayerControls } from "../events/playerControls.js";
-import { initPlayer, updatePlayer, togglePlayMode } from "../gameplay/player.js";
+import {
+  initPlayer,
+  updatePlayer,
+  togglePlayMode,
+} from "../gameplay/player.js";
 
 let previousTimestamp = 0;
 
@@ -107,7 +114,7 @@ function clearScreen() {
       0,
       0,
       state.palette.canvas.width,
-      state.palette.canvas.height
+      state.palette.canvas.height,
     );
     state.palette.context.imageSmoothingEnabled = false;
   } else {
@@ -197,14 +204,14 @@ function refreshEngine() {
   if (state.editing.isEditing) {
     resizePaletteWindow(
       tileset.image.width * 2,
-      tileset.image.height * 2 + state.palette.header.clientHeight
+      tileset.image.height * 2 + state.palette.header.clientHeight,
     );
     movePaletteWindow(
       state.canvas.width -
         state.palette.root.clientWidth -
         state.palette.borderWidth -
         15,
-      state.palette.header.clientHeight + 15 + 20
+      state.palette.header.clientHeight + 15 + 20,
     );
   }
 }

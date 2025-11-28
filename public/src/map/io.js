@@ -28,7 +28,7 @@ export function importMapFromData(data) {
     : [];
   initializeLayersFromData(
     data.layers && data.layers.length ? data.layers : legacyLayer,
-    data.activeLayerIndex ?? 0
+    data.activeLayerIndex ?? 0,
   );
   saveMap();
 }
@@ -53,7 +53,7 @@ export function revertToOriginalMap() {
     : [];
   initializeLayersFromData(
     data.layers && data.layers.length ? data.layers : legacyLayer,
-    data.activeLayerIndex ?? 0
+    data.activeLayerIndex ?? 0,
   );
   saveMap();
 }
@@ -77,4 +77,3 @@ export function exportMap() {
   a.click();
   URL.revokeObjectURL(url);
 }
-

@@ -44,7 +44,7 @@ export function initFirestore() {
   } catch (error) {
     console.error("Firebase initialization error:", error);
     alert(
-      "Firebase not configured. Please update firebaseConfig in src/map/firestore.js"
+      "Firebase not configured. Please update firebaseConfig in src/map/firestore.js",
     );
   }
 }

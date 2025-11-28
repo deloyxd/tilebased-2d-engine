@@ -88,10 +88,12 @@ function setEditorButtonsVisibility(shouldHide) {
     state.dom.resetBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";
   }
   if (state.dom.exportBtn) {
-    state.dom.exportBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";
+    state.dom.exportBtn.style.display =
+      shouldHide || isMapEmpty() ? "none" : "";
   }
   if (state.dom.revertBtn) {
-    state.dom.revertBtn.style.display = shouldHide || isMapEmpty() || !state.originalMapData ? "none" : "";
+    state.dom.revertBtn.style.display =
+      shouldHide || isMapEmpty() || !state.originalMapData ? "none" : "";
   }
   const saveAsLevelBtn = state.dom.saveAsLevelBtn;
   if (saveAsLevelBtn) {
@@ -152,7 +154,7 @@ export function updatePlayer(deltaSeconds = 0) {
   }
   player.position.x = Math.max(
     0,
-    Math.min(player.position.x, state.canvas.width - player.width)
+    Math.min(player.position.x, state.canvas.width - player.width),
   );
 
   if (player.isClimbing) {
@@ -165,7 +167,7 @@ export function updatePlayer(deltaSeconds = 0) {
     player.velocity.y += PLAYER_CONSTANTS.swimGravity * dt;
     player.velocity.y = Math.min(
       player.velocity.y,
-      PLAYER_CONSTANTS.swimMaxFallSpeed
+      PLAYER_CONSTANTS.swimMaxFallSpeed,
     );
 
     if (input.jump) {
@@ -176,7 +178,7 @@ export function updatePlayer(deltaSeconds = 0) {
     player.velocity.y += PLAYER_CONSTANTS.gravity * dt;
     player.velocity.y = Math.min(
       player.velocity.y,
-      PLAYER_CONSTANTS.maxFallSpeed
+      PLAYER_CONSTANTS.maxFallSpeed,
     );
 
     if (input.jump && player.onGround) {
@@ -252,7 +254,7 @@ export function drawPlayer() {
     drawX,
     player.position.y - 5,
     player.width,
-    player.height
+    player.height,
   );
   state.ctx.restore();
 }
@@ -266,9 +268,9 @@ export function resetPlayerState() {
   state.player.position.x = Math.max(
     Math.min(
       spawnPosition?.x ?? fallbackX,
-      (state.canvas?.width || window.innerWidth) - state.player.width
+      (state.canvas?.width || window.innerWidth) - state.player.width,
     ),
-    0
+    0,
   );
   state.player.position.y = Math.max(spawnPosition?.y ?? fallbackY, 0);
   state.player.velocity.x = 0;
@@ -299,11 +301,11 @@ function resolveHorizontalCollisions(nextX, tileSize) {
   const padding = PLAYER_CONSTANTS.collisionPadding;
   const collisionOffsetY = (player.height - player.collisionHeight) / 2;
   const topRow = Math.floor(
-    (player.position.y + collisionOffsetY + padding) / tileSize
+    (player.position.y + collisionOffsetY + padding) / tileSize,
   );
   const bottomRow = Math.floor(
     (player.position.y + collisionOffsetY + player.collisionHeight - padding) /
-      tileSize
+      tileSize,
   );
 
   if (
@@ -344,11 +346,11 @@ function resolveVerticalCollisions(nextY, tileSize) {
   const nextCollisionY = nextY + collisionOffsetY;
   const padding = PLAYER_CONSTANTS.collisionPadding;
   const leftCol = Math.floor(
-    (player.position.x + collisionOffsetX + padding) / tileSize
+    (player.position.x + collisionOffsetX + padding) / tileSize,
   );
   const rightCol = Math.floor(
     (player.position.x + collisionOffsetX + player.collisionWidth - padding) /
-      tileSize
+      tileSize,
   );
 
   if (falling) {
@@ -457,7 +459,7 @@ function getFramesForAnimation(spriteSheet) {
   const descriptor = players[state.player.characterIndex] ||
     players[0] || { frames: [] };
   const filtered = descriptor.frames.filter(
-    (frame) => frame.animation === state.player.animation
+    (frame) => frame.animation === state.player.animation,
   );
   return filtered.length ? filtered : descriptor.frames || [];
 }
@@ -522,23 +524,24 @@ function detectClimbSurface(tileSize) {
   const collisionOffsetY = (player.height - player.collisionHeight) / 2;
   const leftCol = Math.max(
     0,
-    Math.floor((player.position.x + collisionOffsetX) / tileSize)
+    Math.floor((player.position.x + collisionOffsetX) / tileSize),
   );
   const rightCol = Math.min(
     state.mapMaxColumn - 1,
     Math.floor(
-      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize
-    )
+      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize,
+    ),
   );
   const topRow = Math.max(
     0,
-    Math.floor((player.position.y + collisionOffsetY) / tileSize)
+    Math.floor((player.position.y + collisionOffsetY) / tileSize),
   );
   const bottomRow = Math.min(
     state.mapMaxRow - 1,
     Math.floor(
-      (player.position.y + collisionOffsetY + player.collisionHeight) / tileSize
-    )
+      (player.position.y + collisionOffsetY + player.collisionHeight) /
+        tileSize,
+    ),
   );
 
   const playerCollisionRect = {
@@ -562,7 +565,7 @@ function detectClimbSurface(tileSize) {
             : "vertical";
         const narrowWidth = Math.max(
           4,
-          tileSize * PLAYER_CONSTANTS.climbColliderWidthRatio
+          tileSize * PLAYER_CONSTANTS.climbColliderWidthRatio,
         );
         const tileX = col * tileSize + (tileSize - narrowWidth) / 2;
         const tileY = row * tileSize;
@@ -638,23 +641,24 @@ function detectWater(tileSize) {
   const collisionOffsetY = (player.height - player.collisionHeight) / 2;
   const leftCol = Math.max(
     0,
-    Math.floor((player.position.x + collisionOffsetX) / tileSize)
+    Math.floor((player.position.x + collisionOffsetX) / tileSize),
   );
   const rightCol = Math.min(
     state.mapMaxColumn - 1,
     Math.floor(
-      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize
-    )
+      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize,
+    ),
   );
   const topRow = Math.max(
     0,
-    Math.floor((player.position.y + collisionOffsetY) / tileSize)
+    Math.floor((player.position.y + collisionOffsetY) / tileSize),
   );
   const bottomRow = Math.min(
     state.mapMaxRow - 1,
     Math.floor(
-      (player.position.y + collisionOffsetY + player.collisionHeight) / tileSize
-    )
+      (player.position.y + collisionOffsetY + player.collisionHeight) /
+        tileSize,
+    ),
   );
 
   for (let row = topRow; row <= bottomRow; row++) {

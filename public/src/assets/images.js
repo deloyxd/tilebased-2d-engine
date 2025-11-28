@@ -134,4 +134,3 @@ export function loadImages(callback) {
     state.loadingMessage = `Loading assets: ${(a / b) * 100}%`;
   }
 }
-

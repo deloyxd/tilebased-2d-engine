@@ -63,19 +63,19 @@ export function registerInputEvents() {
           state.loadedImages["tileset"].size;
         const startTileX = Math.min(
           editing.selectionStart.x,
-          editing.selectionEnd.x
+          editing.selectionEnd.x,
         );
         const startTileY = Math.min(
           editing.selectionStart.y,
-          editing.selectionEnd.y
+          editing.selectionEnd.y,
         );
         const endTileX = Math.max(
           editing.selectionStart.x,
-          editing.selectionEnd.x
+          editing.selectionEnd.x,
         );
         const endTileY = Math.max(
           editing.selectionStart.y,
-          editing.selectionEnd.y
+          editing.selectionEnd.y,
         );
         editing.selectedTiles = {
           startX: startTileX,
@@ -100,19 +100,19 @@ export function registerInputEvents() {
       saveStateToUndo();
       const startX = Math.min(
         editing.moveSelectionStart.x,
-        editing.moveSelectionEnd.x
+        editing.moveSelectionEnd.x,
       );
       const startY = Math.min(
         editing.moveSelectionStart.y,
-        editing.moveSelectionEnd.y
+        editing.moveSelectionEnd.y,
       );
       const endX = Math.max(
         editing.moveSelectionStart.x,
-        editing.moveSelectionEnd.x
+        editing.moveSelectionEnd.x,
       );
       const endY = Math.max(
         editing.moveSelectionStart.y,
-        editing.moveSelectionEnd.y
+        editing.moveSelectionEnd.y,
       );
 
       editing.moveSelectedTiles = {
@@ -189,8 +189,8 @@ export function registerInputEvents() {
     if (e.target.id === "screen" && state.loadedImages["tileset"]) {
       updatePaletteHeader(
         `| Selected tile #${editing.selectedTileIndex} | ${getTileTypeLabel(
-          editing.selectedTileIndex
-        )}`
+          editing.selectedTileIndex,
+        )}`,
       );
       state.pointer.x = e.clientX;
       state.pointer.y = e.clientY;
@@ -205,7 +205,7 @@ export function registerInputEvents() {
       state.palette.header.style.cursor = "grabbing";
       movePaletteWindow(
         e.clientX - editing.dragOffsetX,
-        e.clientY - editing.dragOffsetY
+        e.clientY - editing.dragOffsetY,
       );
     }
     if (editing.isResizing && state.palette.rect) {
@@ -219,13 +219,13 @@ export function registerInputEvents() {
       if (editing.resizingEdge.includes("right")) {
         newWidth = Math.max(
           Math.min(e.clientX - state.palette.rect.left, maxWidth),
-          minSize
+          minSize,
         );
       }
       if (editing.resizingEdge.includes("bottom")) {
         newHeight = Math.max(
           Math.min(e.clientY - state.palette.rect.top, maxHeight),
-          minSize
+          minSize,
         );
       }
       if (editing.resizingEdge.includes("left")) {
@@ -234,16 +234,16 @@ export function registerInputEvents() {
             state.palette.rect.right -
               e.clientX -
               state.palette.borderWidth * 2,
-            maxWidth
+            maxWidth,
           ),
-          minSize
+          minSize,
         );
         state.palette.root.style.left = `${Math.min(
           Math.max(
             e.clientX,
-            state.palette.rect.right - maxWidth - state.palette.borderWidth * 2
+            state.palette.rect.right - maxWidth - state.palette.borderWidth * 2,
           ),
-          state.palette.rect.right - minSize
+          state.palette.rect.right - minSize,
         )}px`;
       }
       if (editing.resizingEdge.includes("top")) {
@@ -252,18 +252,18 @@ export function registerInputEvents() {
             state.palette.rect.bottom -
               e.clientY -
               state.palette.borderWidth * 2,
-            maxHeight
+            maxHeight,
           ),
-          minSize
+          minSize,
         );
         state.palette.root.style.top = `${Math.min(
           Math.max(
             e.clientY,
             state.palette.rect.bottom -
               maxHeight -
-              state.palette.borderWidth * 2
+              state.palette.borderWidth * 2,
           ),
-          state.palette.rect.bottom - minSize
+          state.palette.rect.bottom - minSize,
         )}px`;
       }
       resizePaletteWindow(newWidth, newHeight);
@@ -292,17 +292,17 @@ export function registerInputEvents() {
       state.loadedImages["tileset"].image.width /
       state.loadedImages["tileset"].size;
     const tileX = Math.floor(
-      (mouseX + editing.paletteScrollX) / paletteTileSize
+      (mouseX + editing.paletteScrollX) / paletteTileSize,
     );
     const tileY = Math.floor(
-      (mouseY + editing.paletteScrollY) / paletteTileSize
+      (mouseY + editing.paletteScrollY) / paletteTileSize,
     );
     const tileIndex = tileY * tilesPerRow + tileX;
     const tileDescriptor =
       tileIndex < 0
         ? ""
         : ` | Tile #${tileIndex} (${tileX}, ${tileY}) | ${getTileTypeLabel(
-            tileIndex
+            tileIndex,
           )}`;
     updatePaletteHeader(`${tileDescriptor}`);
 
@@ -360,10 +360,10 @@ export function registerInputEvents() {
           state.palette.borderWidth -
           state.palette.header.clientHeight;
         const tileX = Math.floor(
-          (mouseX + editing.paletteScrollX) / paletteTileSize
+          (mouseX + editing.paletteScrollX) / paletteTileSize,
         );
         const tileY = Math.floor(
-          (mouseY + editing.paletteScrollY) / paletteTileSize
+          (mouseY + editing.paletteScrollY) / paletteTileSize,
         );
         editing.selectionStart = { x: tileX, y: tileY };
         editing.selectionEnd = { x: tileX, y: tileY };
@@ -392,8 +392,8 @@ export function registerInputEvents() {
       cycleActiveLayer(e.key === "," ? -1 : 1);
       updatePaletteHeader(
         `| Selected tile #${editing.selectedTileIndex} | ${getTileTypeLabel(
-          editing.selectedTileIndex
-        )}`
+          editing.selectedTileIndex,
+        )}`,
       );
       return;
     }
@@ -423,13 +423,14 @@ export function registerInputEvents() {
         deselect();
         break;
       case "a":
-        if (editing.isEditing) editing.isAutotilingEnabled = !editing.isAutotilingEnabled;
+        if (editing.isEditing)
+          editing.isAutotilingEnabled = !editing.isAutotilingEnabled;
         break;
     }
     updatePaletteHeader(
       `| Selected tile #${editing.selectedTileIndex} | ${getTileTypeLabel(
-        editing.selectedTileIndex
-      )}`
+        editing.selectedTileIndex,
+      )}`,
     );
   });
 
@@ -594,7 +595,7 @@ function adjustBrushSize(delta) {
   const editing = state.editing;
   const nextSize = Math.min(
     BRUSH_MAX_SIZE,
-    Math.max(BRUSH_MIN_SIZE, editing.brushSize + delta)
+    Math.max(BRUSH_MIN_SIZE, editing.brushSize + delta),
   );
   if (nextSize === editing.brushSize) return;
   editing.brushSize = nextSize;
