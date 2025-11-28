@@ -1,5 +1,1 @@
-let EDITOR_PASSWORD = "";
-
-export async function getEditorPassword() {
-  return EDITOR_PASSWORD;
-}
+export const API_BASE_URL = "https://islandventure.onrender.com";
