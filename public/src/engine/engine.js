@@ -114,7 +114,7 @@ function clearScreen() {
       0,
       0,
       state.palette.canvas.width,
-      state.palette.canvas.height
+      state.palette.canvas.height,
     );
     state.palette.context.imageSmoothingEnabled = false;
   } else {
@@ -204,14 +204,14 @@ function refreshEngine() {
   if (state.editing.isEditing) {
     resizePaletteWindow(
       tileset.image.width * 2,
-      tileset.image.height * 2 + state.palette.header.clientHeight
+      tileset.image.height * 2 + state.palette.header.clientHeight,
     );
     movePaletteWindow(
       state.canvas.width -
         state.palette.root.clientWidth -
         state.palette.borderWidth -
         15,
-      state.palette.header.clientHeight + 15 + 20
+      state.palette.header.clientHeight + 15 + 20,
     );
   }
 }

@@ -10,7 +10,7 @@ export function initDomReferences() {
   state.palette.context = state.palette.canvas.getContext("2d");
   state.palette.borderWidth = parseInt(
     getComputedStyle(state.palette.root).borderWidth,
-    10
+    10,
   );
 
   state.dom.testBtn = document.getElementById("testBtn");

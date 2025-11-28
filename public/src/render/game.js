@@ -28,14 +28,14 @@ export function displayInfo() {
     state.ctx.fillText(
       `Brush size: ${state.editing.brushSize}/${state.constants.BRUSH_MAX_SIZE}`,
       15,
-      150
+      150,
     );
     state.ctx.fillText(
       `[A]utotiling enabled: ${
         state.editing.isAutotilingEnabled ? "Yes" : "No"
       }`,
       15,
-      180
+      180,
     );
 
     state.ctx.fillText(`[M]ove`, 15, 240);
@@ -84,7 +84,7 @@ export function displayBackground(canvas = null, ctx = null) {
         tile.desX,
         tile.desY,
         state.tiles.size,
-        state.tiles.size
+        state.tiles.size,
       );
     }
     return;
@@ -99,7 +99,7 @@ export function displayBackground(canvas = null, ctx = null) {
       tile.desX,
       tile.desY,
       state.tiles.size,
-      state.tiles.size
+      state.tiles.size,
     );
   }
 }
@@ -130,7 +130,7 @@ export function displayGameMap() {
         (i % state.mapMaxColumn) * state.tiles.size,
         Math.floor(i / state.mapMaxColumn) * state.tiles.size,
         state.tiles.size,
-        state.tiles.size
+        state.tiles.size,
       );
     }
     state.ctx.globalAlpha = previousAlpha;

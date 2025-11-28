@@ -70,7 +70,7 @@ export async function loadMap() {
     : [];
   initializeLayersFromData(
     data.layers && data.layers.length ? data.layers : legacyLayer,
-    data.activeLayerIndex ?? 0
+    data.activeLayerIndex ?? 0,
   );
 
   if (isMapEmpty()) {
@@ -105,7 +105,7 @@ export function saveLastLoadedLevel() {
       JSON.stringify({
         id: state.lastLoadedLevel.id,
         author: state.lastLoadedLevel.author,
-      })
+      }),
     );
   } else {
     localStorage.removeItem("lastLoadedLevel");
