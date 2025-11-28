@@ -9,14 +9,15 @@ import {
   Timestamp,
   doc,
   updateDoc,
+  deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import state from "../state.js";
 
 const AUTHORS = [
-  "Jestley Charles R. Estipona",
   "Enzo P. Daniela",
-  "Kyan Ray I. Villarin",
+  "Jestley Charles R. Estipona",
   "Jun Gin Xenon M. De Jose",
+  "Kyan Ray I. Villarin",
   "Jimmy H. Quiton",
 ];
 
@@ -140,6 +141,26 @@ export async function updateLevelToFirestore(levelId) {
   } catch (error) {
     console.error("Error updating level:", error);
     alert("Error updating level: " + error.message);
+    return false;
+  }
+}
+
+export async function deleteLevelFromFirestore(levelId) {
+  if (!db) {
+    initFirestore();
+    if (!db) {
+      alert("Firebase not initialized");
+      return false;
+    }
+  }
+
+  try {
+    const docRef = doc(db, "levels", levelId);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting level:", error);
+    alert("Error deleting level: " + error.message);
     return false;
   }
 }

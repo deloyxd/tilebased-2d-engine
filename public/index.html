@@ -132,19 +132,49 @@
           "
         >
           <h2 style="margin: 0">Level Designs</h2>
-          <button
-            id="levelModalClose"
-            style="
-              background-color: #444;
-              color: white;
-              border: 1px solid #666;
-              padding: 8px 16px;
-              cursor: pointer;
-              border-radius: 4px;
-            "
-          >
-            Close
-          </button>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button
+              id="selectAllLevelsBtn"
+              style="
+                background-color: #444;
+                color: white;
+                border: 1px solid #666;
+                padding: 8px 16px;
+                cursor: pointer;
+                border-radius: 4px;
+                display: none;
+              "
+            >
+              Select All
+            </button>
+            <button
+              id="deleteSelectedLevelsBtn"
+              style="
+                background-color: #d32f2f;
+                color: white;
+                border: 1px solid #666;
+                padding: 8px 16px;
+                cursor: pointer;
+                border-radius: 4px;
+                display: none;
+              "
+            >
+              Delete Selected
+            </button>
+            <button
+              id="levelModalClose"
+              style="
+                background-color: #444;
+                color: white;
+                border: 1px solid #666;
+                padding: 8px 16px;
+                cursor: pointer;
+                border-radius: 4px;
+              "
+            >
+              Close
+            </button>
+          </div>
         </div>
         <div id="levelModalContent"></div>
       </div>

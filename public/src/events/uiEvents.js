@@ -9,10 +9,12 @@ import {
   saveLevelToFirestore,
   getAllLevels,
   updateLevelToFirestore,
+  deleteLevelFromFirestore,
 } from "../map/firestore.js";
 import { displayBackground } from "../render/game.js";
 
 let dom = null;
+let selectionHandlersInitialized = false;
 
 function isMapEmpty() {
   if (!state.tiles.layers || state.tiles.layers.length === 0) {
@@ -42,11 +44,11 @@ export function updateSaveButtonVisibility() {
   if (!dom) return;
 
   const isEmpty = isMapEmpty();
-  const hasLoadedLevel = state.lastLoadedLevel.id && state.lastLoadedLevel.author;
+  const hasLoadedLevel =
+    state.lastLoadedLevel.id && state.lastLoadedLevel.author;
 
   if (dom.saveLevelBtn) {
-    dom.saveLevelBtn.style.display =
-      !isEmpty && hasLoadedLevel ? "" : "none";
+    dom.saveLevelBtn.style.display = !isEmpty && hasLoadedLevel ? "" : "none";
   }
 
   if (dom.saveAsLevelBtn) {
@@ -114,6 +116,17 @@ export function registerUIEvents() {
     dom.levelModalClose.addEventListener("click", () => {
       if (dom.levelModal) {
         dom.levelModal.style.display = "none";
+        const selectAllBtn = document.getElementById("selectAllLevelsBtn");
+        const deleteSelectedBtn = document.getElementById(
+          "deleteSelectedLevelsBtn"
+        );
+        if (selectAllBtn) {
+          selectAllBtn.style.display = "none";
+          selectAllBtn.textContent = "Select All";
+        }
+        if (deleteSelectedBtn) {
+          deleteSelectedBtn.style.display = "none";
+        }
       }
     });
   }
@@ -122,6 +135,17 @@ export function registerUIEvents() {
     dom.levelModal.addEventListener("click", (e) => {
       if (e.target === dom.levelModal) {
         dom.levelModal.style.display = "none";
+        const selectAllBtn = document.getElementById("selectAllLevelsBtn");
+        const deleteSelectedBtn = document.getElementById(
+          "deleteSelectedLevelsBtn"
+        );
+        if (selectAllBtn) {
+          selectAllBtn.style.display = "none";
+          selectAllBtn.textContent = "Select All";
+        }
+        if (deleteSelectedBtn) {
+          deleteSelectedBtn.style.display = "none";
+        }
       }
     });
   }
@@ -167,7 +191,9 @@ async function handleSaveAsLevel() {
 
 async function handleSaveLevel() {
   if (!state.lastLoadedLevel.id || !state.lastLoadedLevel.author) {
-    alert("No map loaded. Please load a map first using 'Load Map' > 'Import Map'.");
+    alert(
+      "No map loaded. Please load a map first using 'Load Map' > 'Import Map'."
+    );
     return;
   }
 
@@ -179,7 +205,9 @@ async function handleSaveLevel() {
   const mapAuthor = state.lastLoadedLevel.author;
 
   if (enteredName !== mapAuthor) {
-    alert("Name does not match the author of the loaded map. Update cancelled.");
+    alert(
+      "Name does not match the author of the loaded map. Update cancelled."
+    );
     return;
   }
 
@@ -234,8 +262,20 @@ async function handleShowAllLevels() {
             display: flex;
             flex-direction: column;
           ">
-            <div style="margin-bottom: 10px;">
-              <strong>Author:</strong> ${level.author || "Unknown"}
+            <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+              <input
+                type="checkbox"
+                class="level-checkbox"
+                data-level-id="${level.id}"
+                style="
+                  width: 18px;
+                  height: 18px;
+                  cursor: pointer;
+                "
+              />
+              <div>
+                <strong>Author:</strong> ${level.author || "Unknown"}
+              </div>
             </div>
             <div style="margin-bottom: 10px; font-size: 0.95em;">
               <strong>Level:</strong> ${
@@ -248,22 +288,6 @@ async function handleShowAllLevels() {
               <br>
               <div>ID: ${id}</div>
             </div>
-            <button
-              class="import-level-btn"
-              data-level-id="${level.id}"
-              style="
-                background-color: #4a9eff;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                cursor: pointer;
-                border-radius: 4px;
-                margin-top: auto;
-                align-self: flex-end;
-              "
-            >
-              Import Map
-            </button>
           </div>
           <div style="
             width: 200px;
@@ -291,6 +315,25 @@ async function handleShowAllLevels() {
                 image-rendering: pixelated;
               "
             ></canvas>
+            <button
+              class="import-level-btn"
+              data-level-id="${level.id}"
+              style="
+                position: absolute;
+                bottom: 5px;
+                right: 5px;
+                background-color:rgb(255, 255, 255);
+                color: black;
+                border: 1px solid #666;
+                padding: 6px 12px;
+                cursor: pointer;
+                border-radius: 4px;
+                font-size: 0.85em;
+                z-index: 10;
+              "
+            >
+              Import Map
+            </button>
           </div>
         </div>
       `;
@@ -300,8 +343,144 @@ async function handleShowAllLevels() {
     dom.levelModalContent.innerHTML = html;
     dom.levelModal.style.display = "block";
 
+    const selectAllBtn = document.getElementById("selectAllLevelsBtn");
+    const deleteSelectedBtn = document.getElementById(
+      "deleteSelectedLevelsBtn"
+    );
+    const checkboxes =
+      dom.levelModalContent.querySelectorAll(".level-checkbox");
     const importButtons =
       dom.levelModalContent.querySelectorAll(".import-level-btn");
+
+    function updateButtonVisibility() {
+      const currentCheckboxes =
+        dom.levelModalContent.querySelectorAll(".level-checkbox");
+      const currentImportButtons =
+        dom.levelModalContent.querySelectorAll(".import-level-btn");
+      const hasSelection = Array.from(currentCheckboxes).some(
+        (cb) => cb.checked
+      );
+      const allChecked = Array.from(currentCheckboxes).every(
+        (cb) => cb.checked
+      );
+      if (selectAllBtn) {
+        selectAllBtn.style.display = hasSelection ? "block" : "none";
+        if (hasSelection) {
+          selectAllBtn.textContent = allChecked ? "Deselect All" : "Select All";
+        }
+      }
+      if (deleteSelectedBtn) {
+        deleteSelectedBtn.style.display = hasSelection ? "block" : "none";
+      }
+      currentImportButtons.forEach((button) => {
+        button.style.display = hasSelection ? "none" : "block";
+      });
+    }
+
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", updateButtonVisibility);
+    });
+
+    if (!selectionHandlersInitialized) {
+      if (selectAllBtn) {
+        selectAllBtn.addEventListener("click", function selectAllHandler() {
+          const currentCheckboxes =
+            dom.levelModalContent.querySelectorAll(".level-checkbox");
+          const allChecked = Array.from(currentCheckboxes).every(
+            (cb) => cb.checked
+          );
+          currentCheckboxes.forEach((checkbox) => {
+            checkbox.checked = !allChecked;
+          });
+          if (selectAllBtn) {
+            selectAllBtn.textContent = allChecked
+              ? "Select All"
+              : "Deselect All";
+          }
+          updateButtonVisibility();
+        });
+      }
+
+      if (deleteSelectedBtn) {
+        deleteSelectedBtn.addEventListener(
+          "click",
+          async function deleteSelectedHandler() {
+            const currentCheckboxes =
+              dom.levelModalContent.querySelectorAll(".level-checkbox");
+            const selectedIds = Array.from(currentCheckboxes)
+              .filter((cb) => cb.checked)
+              .map((cb) => cb.getAttribute("data-level-id"));
+
+            if (selectedIds.length === 0) return;
+
+            const count = selectedIds.length;
+            const confirmMessage = `Are you sure you want to permanently delete ${count} level design${
+              count > 1 ? "s" : ""
+            }? This action cannot be undone.\n\nType "DELETE" to confirm:`;
+            const userInput = prompt(confirmMessage);
+
+            if (userInput !== "DELETE") {
+              return;
+            }
+
+            const confirmed = confirm(
+              `This will permanently delete ${count} level design${
+                count > 1 ? "s" : ""
+              }. Are you absolutely sure?`
+            );
+
+            if (!confirmed) {
+              return;
+            }
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const levelId of selectedIds) {
+              const success = await deleteLevelFromFirestore(levelId);
+              if (success) {
+                successCount++;
+              } else {
+                failCount++;
+              }
+            }
+
+            if (successCount > 0) {
+              alert(
+                `Successfully deleted ${successCount} level design${
+                  successCount > 1 ? "s" : ""
+                }.${
+                  failCount > 0
+                    ? ` Failed to delete ${failCount} level design${
+                        failCount > 1 ? "s" : ""
+                      }.`
+                    : ""
+                }`
+              );
+              await handleShowAllLevels();
+              const selectAllBtn =
+                document.getElementById("selectAllLevelsBtn");
+              const deleteSelectedBtn = document.getElementById(
+                "deleteSelectedLevelsBtn"
+              );
+              if (selectAllBtn) {
+                selectAllBtn.style.display = "none";
+                selectAllBtn.textContent = "Select All";
+              }
+              if (deleteSelectedBtn) {
+                deleteSelectedBtn.style.display = "none";
+              }
+            } else {
+              alert(
+                `Failed to delete level design${failCount > 1 ? "s" : ""}.`
+              );
+            }
+          }
+        );
+      }
+      selectionHandlersInitialized = true;
+    }
+
     importButtons.forEach((button) => {
       button.addEventListener("click", async (e) => {
         const levelId = e.target.getAttribute("data-level-id");
