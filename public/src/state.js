@@ -95,6 +95,7 @@ const state = {
     levelModal: null,
     levelModalClose: null,
     levelModalContent: null,
+    createNewMapBtn: null,
     revertBtn: null,
     landingPage: null,
     playGameBtn: null,

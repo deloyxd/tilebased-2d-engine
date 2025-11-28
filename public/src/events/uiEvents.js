@@ -246,6 +246,10 @@ export function registerUIEvents() {
     dom.editLevelsBtn.addEventListener("click", handleEditLevels);
   }
 
+  if (dom.createNewMapBtn) {
+    dom.createNewMapBtn.addEventListener("click", handleCreateNewMap);
+  }
+
   updateSaveButtonVisibility();
 }
 
@@ -406,12 +410,16 @@ function showPasswordModal() {
       dom.passwordInput.removeEventListener("keydown", handleKeyDown);
       dom.passwordSubmitBtn.removeEventListener("click", handleSubmit);
       dom.passwordCancelBtn.removeEventListener("click", handleCancel);
-      if (dom.passwordModal) {
-        dom.passwordModal.removeEventListener("click", handleModalClick);
-      }
     };
 
     const handleSubmit = async () => {
+      const editorPassword = await getEditorPassword();
+      if (editorPassword === '') {
+        cleanup();
+        resolve();
+        return;
+      }
+
       const password = dom.passwordInput.value;
       if (!password) {
         dom.passwordError.textContent = "Please enter a password";
@@ -419,7 +427,6 @@ function showPasswordModal() {
         return;
       }
 
-      const editorPassword = await getEditorPassword();
       if (password !== editorPassword) {
         dom.passwordError.textContent = "Incorrect password. Access denied.";
         dom.passwordError.style.display = "block";
@@ -445,16 +452,9 @@ function showPasswordModal() {
       }
     };
 
-    const handleModalClick = (e) => {
-      if (e.target === dom.passwordModal) {
-        handleCancel();
-      }
-    };
-
     dom.passwordInput.addEventListener("keydown", handleKeyDown);
     dom.passwordSubmitBtn.addEventListener("click", handleSubmit);
     dom.passwordCancelBtn.addEventListener("click", handleCancel);
-    dom.passwordModal.addEventListener("click", handleModalClick);
   });
 }
 
@@ -469,9 +469,42 @@ async function handleEditLevels() {
   }
 }
 
+async function handleCreateNewMap() {
+  if (state.gameplay.isPlaying) {
+    togglePlayMode();
+  }
+  if (state.lastLoadedLevel.id) {
+    initFirestore();
+    await setLevelNotBeingEdited(state.lastLoadedLevel.id);
+  }
+  state.lastLoadedLevel.id = null;
+  state.lastLoadedLevel.author = null;
+  saveLastLoadedLevel();
+  resetMap();
+  if (dom.levelModal) {
+    dom.levelModal.style.display = "none";
+    const selectAllBtn = document.getElementById("selectAllLevelsBtn");
+    const deleteSelectedBtn = document.getElementById(
+      "deleteSelectedLevelsBtn"
+    );
+    if (selectAllBtn) {
+      selectAllBtn.style.display = "none";
+      selectAllBtn.textContent = "Select All";
+    }
+    if (deleteSelectedBtn) {
+      deleteSelectedBtn.style.display = "none";
+    }
+  }
+  hideLandingPage();
+  updateSaveButtonVisibility();
+}
+
 async function handleShowAllLevels(hideCheckboxes = false) {
   if (!dom.showAllLevelsBtn || !dom.levelModal || !dom.levelModalContent)
     return;
+
+  console.log("hideCheckboxes", hideCheckboxes);
+  dom.createNewMapBtn.style.display = hideCheckboxes ? "block" : "none";
 
   const originalButtonText = dom.showAllLevelsBtn.textContent;
   dom.showAllLevelsBtn.disabled = true;
@@ -823,10 +856,18 @@ async function handleShowAllLevels(hideCheckboxes = false) {
           return;
         }
 
-        const confirmed = confirm(
-          "Open this level? This will replace your current map."
-        );
-        if (confirmed) {
+        if (hideCheckboxes) {
+          continueOpenMap();
+        } else {
+          const confirmed = confirm(
+            "Open this level? This will replace your current map."
+          );
+          if (confirmed) {
+            continueOpenMap();
+          }
+        }
+
+        async function continueOpenMap() {
           dom.levelModal.style.display = "none";
           importMapFromData(level.mapData);
           await setLevelNotBeingEdited(levelId);
