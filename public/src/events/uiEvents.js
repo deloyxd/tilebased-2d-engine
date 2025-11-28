@@ -23,7 +23,6 @@ import {
   setLevelBeingEdited,
   setLevelNotBeingEdited,
 } from "../map/firestore.js";
-import { getEditorPassword } from "../config.js";
 import { displayBackground } from "../render/game.js";
 
 let dom = null;
@@ -177,7 +176,7 @@ export function registerUIEvents() {
   if (dom.revertBtn) {
     dom.revertBtn.addEventListener("click", () => {
       const confirmed = confirm(
-        "Are you sure you want to reset to the original map data?",
+        "Are you sure you want to reset to the original map data?"
       );
       if (confirmed) {
         revertToOriginalMap();
@@ -228,7 +227,7 @@ export function registerUIEvents() {
         dom.levelModal.style.display = "none";
         const selectAllBtn = document.getElementById("selectAllLevelsBtn");
         const deleteSelectedBtn = document.getElementById(
-          "deleteSelectedLevelsBtn",
+          "deleteSelectedLevelsBtn"
         );
         if (selectAllBtn) {
           selectAllBtn.style.display = "none";
@@ -247,7 +246,7 @@ export function registerUIEvents() {
         dom.levelModal.style.display = "none";
         const selectAllBtn = document.getElementById("selectAllLevelsBtn");
         const deleteSelectedBtn = document.getElementById(
-          "deleteSelectedLevelsBtn",
+          "deleteSelectedLevelsBtn"
         );
         if (selectAllBtn) {
           selectAllBtn.style.display = "none";
@@ -306,7 +305,7 @@ async function handleSaveAsLevel() {
 
     if (authors.length === 0) {
       alert(
-        "No authors configured. Please add authors in src/map/firestore.js",
+        "No authors configured. Please add authors in src/map/firestore.js"
       );
       return;
     }
@@ -315,7 +314,7 @@ async function handleSaveAsLevel() {
       .map((author, index) => `${index + 1}. ${author}`)
       .join("\n");
     const userInput = prompt(
-      `Select an author:\n\n${authorOptions}\n\nEnter number (1-${authors.length}):`,
+      `Select an author:\n\n${authorOptions}\n\nEnter number (1-${authors.length}):`
     );
 
     if (!userInput) return;
@@ -369,7 +368,7 @@ async function handleSaveLevel() {
   try {
     if (!state.lastLoadedLevel.id || !state.lastLoadedLevel.author) {
       alert(
-        "No map loaded. Please load a map first using 'Load Map' > 'Import Map'.",
+        "No map loaded. Please load a map first using 'Load Map' > 'Import Map'."
       );
       return;
     }
@@ -383,7 +382,7 @@ async function handleSaveLevel() {
 
     if (enteredName !== mapAuthor) {
       alert(
-        "Name does not match the author of the loaded map. Update cancelled.",
+        "Name does not match the author of the loaded map. Update cancelled."
       );
       return;
     }
@@ -393,7 +392,7 @@ async function handleSaveLevel() {
 
     if (!existingLevel) {
       alert(
-        "This map was deleted from the database moments ago. It will now be saved as a new map.",
+        "This map was deleted from the database moments ago. It will now be saved as a new map."
       );
       const levelId = await saveLevelToFirestore(state.lastLoadedLevel.author);
 
@@ -423,6 +422,54 @@ async function handleSaveLevel() {
   }
 }
 
+async function loginWithPassword(password) {
+  if (!password) {
+    throw new Error("Password is required.");
+  }
+
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ password }),
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (error) {
+    console.error("Failed to parse login response:", error);
+  }
+
+  if (!response.ok) {
+    const message = data?.message || "Login failed. Please try again.";
+    throw new Error(message);
+  }
+
+  return true;
+}
+
+async function checkAdminSession() {
+  try {
+    const response = await fetch("/api/auth/session", {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json().catch(() => null);
+    return Boolean(data?.authenticated);
+  } catch (error) {
+    console.error("Session check failed:", error);
+    return false;
+  }
+}
+
 function showPasswordModal() {
   return new Promise((resolve, reject) => {
     if (!dom.passwordModal || !dom.passwordInput) {
@@ -446,26 +493,11 @@ function showPasswordModal() {
       dom.passwordCancelBtn.removeEventListener("click", handleCancel);
     };
 
-    const handleSubmit = async () => {
-      const editorPassword = await getEditorPassword();
-      if (editorPassword === "") {
-        cleanup();
-        resolve();
-        return;
-      }
-
+    const handleSubmit = () => {
       const password = dom.passwordInput.value;
       if (!password) {
         dom.passwordError.textContent = "Please enter a password";
         dom.passwordError.style.display = "block";
-        return;
-      }
-
-      if (password !== editorPassword) {
-        dom.passwordError.textContent = "Incorrect password. Access denied.";
-        dom.passwordError.style.display = "block";
-        dom.passwordInput.value = "";
-        dom.passwordInput.focus();
         return;
       }
 
@@ -495,7 +527,21 @@ function showPasswordModal() {
 async function handleEditLevels() {
   try {
     showLandingPageLoading();
-    await showPasswordModal();
+    let isAuthenticated = await checkAdminSession();
+
+    while (!isAuthenticated) {
+      try {
+        const password = await showPasswordModal();
+        await loginWithPassword(password);
+        isAuthenticated = true;
+      } catch (error) {
+        if (error === "Cancelled") {
+          throw error;
+        }
+        alert(error.message || "Login failed. Please try again.");
+      }
+    }
+
     await handleShowAllLevels(true);
   } catch (error) {
     if (error !== "Cancelled") {
@@ -523,7 +569,7 @@ async function handleCreateNewMap() {
     dom.levelModal.style.display = "none";
     const selectAllBtn = document.getElementById("selectAllLevelsBtn");
     const deleteSelectedBtn = document.getElementById(
-      "deleteSelectedLevelsBtn",
+      "deleteSelectedLevelsBtn"
     );
     if (selectAllBtn) {
       selectAllBtn.style.display = "none";
@@ -685,7 +731,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
 
     const selectAllBtn = document.getElementById("selectAllLevelsBtn");
     const deleteSelectedBtn = document.getElementById(
-      "deleteSelectedLevelsBtn",
+      "deleteSelectedLevelsBtn"
     );
     const checkboxes =
       dom.levelModalContent.querySelectorAll(".level-checkbox");
@@ -708,7 +754,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
       const currentImportButtons =
         dom.levelModalContent.querySelectorAll(".import-level-btn");
       const selectableCheckboxes = Array.from(currentCheckboxes).filter(
-        (cb) => cb.style.display !== "none",
+        (cb) => cb.style.display !== "none"
       );
       const hasSelection = selectableCheckboxes.some((cb) => cb.checked);
       const allChecked =
@@ -754,7 +800,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
                 levelId !== state.lastLoadedLevel.id &&
                 cb.style.display !== "none"
               );
-            },
+            }
           );
           const allChecked =
             selectableCheckboxes.length > 0 &&
@@ -787,7 +833,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
               .map((id) => levels.find((l) => l.id === id))
               .filter(Boolean);
             const beingEditedLevels = levelsToDelete.filter(
-              (level) => level.isBeingEdited === true,
+              (level) => level.isBeingEdited === true
             );
 
             if (beingEditedLevels.length > 0) {
@@ -796,7 +842,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
                   beingEditedLevels.length > 1 ? "s" : ""
                 } that ${
                   beingEditedLevels.length > 1 ? "are" : "is"
-                } currently being edited.`,
+                } currently being edited.`
               );
               return;
             }
@@ -814,7 +860,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
             const confirmed = confirm(
               `This will permanently delete ${count} level design${
                 count > 1 ? "s" : ""
-              }. Are you absolutely sure?`,
+              }. Are you absolutely sure?`
             );
 
             if (!confirmed) {
@@ -843,13 +889,13 @@ async function handleShowAllLevels(hideCheckboxes = false) {
                         failCount > 1 ? "s" : ""
                       }.`
                     : ""
-                }`,
+                }`
               );
               await handleShowAllLevels(false);
               const selectAllBtn =
                 document.getElementById("selectAllLevelsBtn");
               const deleteSelectedBtn = document.getElementById(
-                "deleteSelectedLevelsBtn",
+                "deleteSelectedLevelsBtn"
               );
               if (selectAllBtn) {
                 selectAllBtn.style.display = "none";
@@ -860,10 +906,10 @@ async function handleShowAllLevels(hideCheckboxes = false) {
               }
             } else {
               alert(
-                `Failed to delete level design${failCount > 1 ? "s" : ""}.`,
+                `Failed to delete level design${failCount > 1 ? "s" : ""}.`
               );
             }
-          },
+          }
         );
       }
       selectionHandlersInitialized = true;
@@ -878,7 +924,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
 
         if (!level) {
           alert(
-            "This level no longer exists in the database. Please refresh the list.",
+            "This level no longer exists in the database. Please refresh the list."
           );
           await handleShowAllLevels(hideCheckboxes);
           return;
@@ -898,7 +944,7 @@ async function handleShowAllLevels(hideCheckboxes = false) {
           continueOpenMap();
         } else {
           const confirmed = confirm(
-            "Open this level? This will replace your current map.",
+            "Open this level? This will replace your current map."
           );
           if (confirmed) {
             continueOpenMap();
@@ -937,10 +983,10 @@ function renderLevelPreview(mapData, index) {
   }
 
   const canvas = dom.levelModalContent.querySelector(
-    `.level-preview-canvas[data-level-index="${index}"]`,
+    `.level-preview-canvas[data-level-index="${index}"]`
   );
   const loadingDiv = dom.levelModalContent.querySelector(
-    `.level-preview-loading[data-level-index="${index}"]`,
+    `.level-preview-loading[data-level-index="${index}"]`
   );
 
   if (!canvas || !loadingDiv) return;
@@ -1008,7 +1054,7 @@ function renderLevelPreview(mapData, index) {
         destX,
         destY,
         destSize,
-        destSize,
+        destSize
       );
     }
   }
