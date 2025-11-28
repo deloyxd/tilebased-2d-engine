@@ -1,5 +1,10 @@
 import state from "../state.js";
-import { importMap, exportMap, importMapFromData, revertToOriginalMap } from "../map/io.js";
+import {
+  importMap,
+  exportMap,
+  importMapFromData,
+  revertToOriginalMap,
+} from "../map/io.js";
 import { resetMap, saveLastLoadedLevel } from "../map/storage.js";
 import { togglePlayMode, resetPlayerState } from "../gameplay/player.js";
 import {
@@ -66,7 +71,8 @@ export function updateSaveButtonVisibility() {
   }
 
   if (dom.revertBtn && !state.gameplay.isPlaying) {
-    dom.revertBtn.style.display = !isEmpty && state.originalMapData ? "" : "none";
+    dom.revertBtn.style.display =
+      !isEmpty && state.originalMapData ? "" : "none";
   }
 }
 
@@ -96,7 +102,9 @@ export function registerUIEvents() {
 
   if (dom.revertBtn) {
     dom.revertBtn.addEventListener("click", () => {
-      const confirmed = confirm("Are you sure you want to reset to the original map data?");
+      const confirmed = confirm(
+        "Are you sure you want to reset to the original map data?"
+      );
       if (confirmed) {
         revertToOriginalMap();
         updateSaveButtonVisibility();
