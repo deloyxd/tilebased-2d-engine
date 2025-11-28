@@ -195,6 +195,27 @@ export async function getLevelById(levelId) {
   }
 }
 
+export async function setLevelBeingEdited(levelId) {
+  if (!db) {
+    initFirestore();
+    if (!db) {
+      alert("Firebase not initialized");
+      return false;
+    }
+  }
+
+  try {
+    const docRef = doc(db, "levels", levelId);
+    await updateDoc(docRef, {
+      isBeingEdited: true,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error setting level being edited:", error);
+    return false;
+  }
+}
+
 export async function setLevelNotBeingEdited(levelId) {
   if (!db) {
     initFirestore();

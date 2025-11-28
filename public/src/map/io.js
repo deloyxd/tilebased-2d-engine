@@ -1,7 +1,6 @@
 import state from "../state.js";
 import { saveMap } from "./storage.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
-import { updateSaveButtonVisibility } from "../events/uiEvents.js";
 
 export function importMap(file) {
   const reader = new FileReader();

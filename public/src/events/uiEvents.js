@@ -11,6 +11,7 @@ import {
   updateLevelToFirestore,
   deleteLevelFromFirestore,
   getLevelById,
+  setLevelBeingEdited,
   setLevelNotBeingEdited,
 } from "../map/firestore.js";
 import { displayBackground } from "../render/game.js";
@@ -333,13 +334,15 @@ async function handleShowAllLevels() {
         : "Unknown";
       const isCurrentlyLoaded = level.id === state.lastLoadedLevel.id;
       const isBeingEdited = level.isBeingEdited === true;
-      const rowOpacity = isCurrentlyLoaded ? "0.5" : "1";
+      const rowOpacity = isCurrentlyLoaded || isBeingEdited ? "0.5" : "1";
       const checkboxDisplay =
         isCurrentlyLoaded || isBeingEdited ? "none" : "block";
       const importButtonDisplay =
         isCurrentlyLoaded || isBeingEdited ? "none" : "block";
       const beingEditedIndicator = isBeingEdited
-        ? '<div style="color: #ff9800; font-weight: bold; margin-top: 5px;">⚠️ Being Edited</div>'
+        ? `<div style="color: #ff9800; font-weight: bold; margin-top: 5px;">⚠️ Being Edited${
+            isCurrentlyLoaded ? " (by You)" : " (by Someone Else)"
+          }</div>`
         : "";
 
       html += `
@@ -642,14 +645,15 @@ async function handleShowAllLevels() {
           "Open this level? This will replace your current map."
         );
         if (confirmed) {
+          dom.levelModal.style.display = "none";
           saveStateToUndo();
           importMapFromData(level.mapData);
           await setLevelNotBeingEdited(levelId);
+          await setLevelBeingEdited(levelId);
           state.lastLoadedLevel.id = level.id;
           state.lastLoadedLevel.author = level.author || null;
           saveLastLoadedLevel();
           updateSaveButtonVisibility();
-          dom.levelModal.style.display = "none";
         }
       });
     });
