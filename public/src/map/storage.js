@@ -1,6 +1,7 @@
 import state from "../state.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
 import { updateSaveButtonVisibility } from "../events/uiEvents.js";
+import { saveStateToUndo } from "./history.js";
 
 export function loadMap() {
   const { tiles } = state;
@@ -79,13 +80,11 @@ export function saveMap() {
 }
 
 export function resetMap() {
+  saveStateToUndo();
   const { tiles } = state;
   state.mapMaxColumn = Math.ceil(window.innerWidth / tiles.size);
   state.mapMaxRow = Math.ceil(window.innerHeight / tiles.size);
   initializeLayersFromData([], 0);
-  state.lastLoadedLevel.id = null;
-  state.lastLoadedLevel.author = null;
-  saveLastLoadedLevel();
   saveMap();
 }
 

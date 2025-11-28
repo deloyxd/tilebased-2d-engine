@@ -6,6 +6,11 @@ import {
   setActiveLayerIndex,
 } from "../tiles/layers.js";
 
+export function resetHistory() {
+  state.history.undoStack = [];
+  state.history.redoStack = [];
+}
+
 export function saveStateToUndo() {
   const snapshot = {
     layers: cloneLayers(),

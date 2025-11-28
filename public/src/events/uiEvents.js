@@ -1,7 +1,7 @@
 import state from "../state.js";
-import { saveStateToUndo } from "../map/history.js";
+import { resetHistory, resetHistory } from "../map/history.js";
 import { importMap, exportMap, importMapFromData } from "../map/io.js";
-import { resetMap, saveLastLoadedLevel } from "../map/storage.js";
+import { resetMap, saveLastLoadedLevel, saveMap } from "../map/storage.js";
 import { togglePlayMode, resetPlayerState } from "../gameplay/player.js";
 import {
   initFirestore,
@@ -101,11 +101,11 @@ export function registerUIEvents() {
 
   dom.importFileInput.addEventListener("change", async (e) => {
     if (e.target.files.length > 0) {
-      saveStateToUndo();
       if (state.lastLoadedLevel.id) {
         initFirestore();
         await setLevelNotBeingEdited(state.lastLoadedLevel.id);
       }
+      resetHistory();
       importMap(e.target.files[0]);
       state.lastLoadedLevel.id = null;
       state.lastLoadedLevel.author = null;
@@ -646,7 +646,7 @@ async function handleShowAllLevels() {
         );
         if (confirmed) {
           dom.levelModal.style.display = "none";
-          saveStateToUndo();
+          resetHistory();
           importMapFromData(level.mapData);
           await setLevelNotBeingEdited(levelId);
           await setLevelBeingEdited(levelId);
