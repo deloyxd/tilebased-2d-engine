@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "server": "node server/server.js"
+    "server": "node server/server.js",
+    "start": "node server/server.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
