@@ -24,8 +24,8 @@ const corsOptions = {
 };
 
 app.disable("x-powered-by");
-app.use(helmet());
 app.use(cors(corsOptions));
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -36,6 +36,12 @@ app.use(
 );
 
 app.use("/api", routes);
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found." });
