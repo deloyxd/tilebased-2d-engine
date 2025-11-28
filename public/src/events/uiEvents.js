@@ -5,7 +5,12 @@ import {
   importMapFromData,
   revertToOriginalMap,
 } from "../map/io.js";
-import { resetMap, saveLastLoadedLevel } from "../map/storage.js";
+import {
+  resetMap,
+  saveLastLoadedLevel,
+  syncOriginalMapData,
+  isMapModifiedFromOriginal,
+} from "../map/storage.js";
 import { togglePlayMode, resetPlayerState } from "../gameplay/player.js";
 import {
   initFirestore,
@@ -94,6 +99,17 @@ export function exitMap() {
   showLandingPage();
   hideLandingPageLoading();
   updateSaveButtonVisibility();
+}
+
+function shouldExitEditor() {
+  const defaultMessage = "Are you sure you want to exit the editor?";
+  const hasLoadedMap = Boolean(state.originalMapData);
+  const hasUnsavedChanges =
+    hasLoadedMap && isMapModifiedFromOriginal();
+  const message = hasUnsavedChanges
+    ? "You have unsaved changes to this map. Exit without saving?"
+    : defaultMessage;
+  return confirm(message);
 }
 
 export function updateSaveButtonVisibility() {
@@ -246,7 +262,11 @@ export function registerUIEvents() {
   }
 
   if (dom.exitMapBtn) {
-    dom.exitMapBtn.addEventListener("click", exitMap);
+    dom.exitMapBtn.addEventListener("click", () => {
+      if (shouldExitEditor()) {
+        exitMap();
+      }
+    });
   }
 
   if (dom.playGameBtn) {
@@ -320,6 +340,7 @@ async function handleSaveAsLevel() {
       saveLastLoadedLevel();
       updateSaveButtonVisibility();
       alert(`Level saved successfully! ID: ${levelId}`);
+      syncOriginalMapData();
     }
   } finally {
     dom.saveAsLevelBtn.disabled = false;
@@ -391,6 +412,7 @@ async function handleSaveLevel() {
 
     if (success) {
       alert("Map updated successfully!");
+      syncOriginalMapData();
     }
   } finally {
     dom.saveLevelBtn.disabled = false;

@@ -1,8 +1,19 @@
 import state from "../state.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
-import { updateSaveButtonVisibility, showLandingPage, hideLandingPage, isMapEmpty, showLandingPageLoading, hideLandingPageLoading } from "../events/uiEvents.js";
+import {
+  updateSaveButtonVisibility,
+  showLandingPage,
+  hideLandingPage,
+  isMapEmpty,
+  showLandingPageLoading,
+  hideLandingPageLoading,
+} from "../events/uiEvents.js";
 import { saveStateToUndo } from "./history.js";
-import { initFirestore, getLevelById, setLevelBeingEdited } from "./firestore.js";
+import {
+  initFirestore,
+  getLevelById,
+  setLevelBeingEdited,
+} from "./firestore.js";
 import { importMapFromData } from "./io.js";
 
 export async function loadMap() {
@@ -59,16 +70,16 @@ export async function loadMap() {
     : [];
   initializeLayersFromData(
     data.layers && data.layers.length ? data.layers : legacyLayer,
-    data.activeLayerIndex ?? 0,
+    data.activeLayerIndex ?? 0
   );
-  
+
   if (isMapEmpty()) {
     showLandingPage();
     hideLandingPageLoading();
   } else {
     hideLandingPage();
   }
-  
+
   updateSaveButtonVisibility();
 }
 
@@ -94,22 +105,26 @@ export function saveLastLoadedLevel() {
       JSON.stringify({
         id: state.lastLoadedLevel.id,
         author: state.lastLoadedLevel.author,
-      }),
+      })
     );
   } else {
     localStorage.removeItem("lastLoadedLevel");
   }
 }
 
-export function saveMap() {
-  const data = {
+export function getCurrentMapData() {
+  return {
     mapMaxColumn: state.mapMaxColumn,
     mapMaxRow: state.mapMaxRow,
-    layers: state.tiles.layers,
+    layers: JSON.parse(JSON.stringify(state.tiles.layers)),
     activeLayerIndex: state.editing.activeLayerIndex,
     tiles:
       state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || [],
   };
+}
+
+export function saveMap() {
+  const data = getCurrentMapData();
   localStorage.setItem("map", JSON.stringify(data));
   updateSaveButtonVisibility();
 }
@@ -121,4 +136,33 @@ export function resetMap() {
   state.mapMaxRow = Math.ceil(window.innerHeight / tiles.size);
   initializeLayersFromData([], 0);
   saveMap();
+}
+
+export function syncOriginalMapData() {
+  state.originalMapData = JSON.parse(JSON.stringify(getCurrentMapData()));
+}
+
+export function isMapModifiedFromOriginal() {
+  if (!state.originalMapData) return false;
+
+  const originalLayers = state.originalMapData.layers ?? [];
+  const currentLayers = state.tiles.layers ?? [];
+
+  if (originalLayers.length !== currentLayers.length) {
+    return true;
+  }
+
+  for (let i = 0; i < originalLayers.length; i++) {
+    const a = originalLayers[i].tiles;
+    const b = currentLayers[i].tiles;
+    if (a.length !== b.length) return true;
+
+    for (let t = 0; t < a.length; t++) {
+      if (a[t] !== b[t]) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
