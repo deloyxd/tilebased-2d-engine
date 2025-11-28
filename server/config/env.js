@@ -5,8 +5,8 @@ const envPath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: envPath });
 
 const CLIENT_ORIGIN = [
-  "http://localhost:8080",
-  "https://tilebased-2d-engine.onrender.com",
+  "http://localhost:5500",
+  "https://islandventure.web.app",
 ];
 
 const config = {
