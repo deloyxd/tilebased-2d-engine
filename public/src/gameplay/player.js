@@ -95,6 +95,9 @@ function setEditorButtonsVisibility(shouldHide) {
     state.dom.revertBtn.style.display =
       shouldHide || isMapEmpty() || !state.originalMapData ? "none" : "";
   }
+  if (state.dom.exitMapBtn) {
+    state.dom.exitMapBtn.style.display = shouldHide ? "none" : "";
+  }
   const saveAsLevelBtn = state.dom.saveAsLevelBtn;
   if (saveAsLevelBtn) {
     saveAsLevelBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";

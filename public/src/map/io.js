@@ -1,7 +1,7 @@
 import state from "../state.js";
 import { saveMap } from "./storage.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
-import { saveStateToUndo } from "./history.js";
+import { resetHistory, saveStateToUndo } from "./history.js";
 import { hideLandingPage } from "../events/uiEvents.js";
 
 export function importMap(file) {
@@ -14,6 +14,7 @@ export function importMap(file) {
 }
 
 export function importMapFromData(data) {
+  resetHistory();
   state.originalMapData = JSON.parse(JSON.stringify(data));
   state.mapMaxColumn = data.mapMaxColumn;
   state.mapMaxRow = data.mapMaxRow;

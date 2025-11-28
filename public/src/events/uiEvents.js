@@ -122,10 +122,6 @@ export function updateSaveButtonVisibility() {
   if (dom.revertBtn && !state.gameplay.isPlaying) {
     dom.revertBtn.style.display = state.originalMapData ? "" : "none";
   }
-
-  if (dom.exitMapBtn) {
-    dom.exitMapBtn.style.display = state.gameplay.isPlaying ? "none" : "";
-  }
 }
 
 export function registerUIEvents() {
@@ -477,12 +473,15 @@ function showPasswordModal() {
 
 async function handleEditLevels() {
   try {
+    showLandingPageLoading();
     await showPasswordModal();
     await handleShowAllLevels(true);
   } catch (error) {
     if (error !== "Cancelled") {
       console.error("Password modal error:", error);
     }
+  } finally {
+    hideLandingPageLoading();
   }
 }
 
@@ -494,6 +493,7 @@ async function handleCreateNewMap() {
     initFirestore();
     await setLevelNotBeingEdited(state.lastLoadedLevel.id);
   }
+  state.originalMapData = null;
   state.lastLoadedLevel.id = null;
   state.lastLoadedLevel.author = null;
   saveLastLoadedLevel();
