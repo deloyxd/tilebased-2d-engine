@@ -9,10 +9,19 @@ const config = require("./config/env");
 
 const app = express();
 
-const allowedOrigins = config.clientOrigins;
-const corsOptions = allowedOrigins.includes("*")
-  ? { origin: true, credentials: true }
-  : { origin: allowedOrigins, credentials: true };
+const allowedOrigins = Array.isArray(config.clientOrigins)
+  ? config.clientOrigins
+  : [config.clientOrigins].filter(Boolean);
+const allowAllOrigins = allowedOrigins.includes("*");
+const corsOptions = {
+  credentials: true,
+  origin(origin, callback) {
+    if (allowAllOrigins || !origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+};
 
 app.disable("x-powered-by");
 app.use(helmet());
