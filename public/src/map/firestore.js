@@ -4,6 +4,7 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
   query,
   orderBy,
   Timestamp,
@@ -75,6 +76,7 @@ export async function saveLevelToFirestore(author) {
       author: author,
       level: 0,
       mapData: mapData,
+      isBeingEdited: true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
@@ -135,6 +137,7 @@ export async function updateLevelToFirestore(levelId) {
     const docRef = doc(db, "levels", levelId);
     await updateDoc(docRef, {
       mapData: mapData,
+      isBeingEdited: true,
       updatedAt: Timestamp.now(),
     });
     return true;
@@ -161,6 +164,54 @@ export async function deleteLevelFromFirestore(levelId) {
   } catch (error) {
     console.error("Error deleting level:", error);
     alert("Error deleting level: " + error.message);
+    return false;
+  }
+}
+
+export async function getLevelById(levelId) {
+  if (!db) {
+    initFirestore();
+    if (!db) {
+      alert("Firebase not initialized");
+      return null;
+    }
+  }
+
+  try {
+    const docRef = doc(db, "levels", levelId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return {
+        id: docSnap.id,
+        ...docSnap.data(),
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error getting level:", error);
+    alert("Error getting level: " + error.message);
+    return null;
+  }
+}
+
+export async function setLevelNotBeingEdited(levelId) {
+  if (!db) {
+    initFirestore();
+    if (!db) {
+      alert("Firebase not initialized");
+      return false;
+    }
+  }
+
+  try {
+    const docRef = doc(db, "levels", levelId);
+    await updateDoc(docRef, {
+      isBeingEdited: false,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error setting level not being edited:", error);
     return false;
   }
 }

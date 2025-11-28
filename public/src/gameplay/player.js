@@ -78,12 +78,18 @@ export function togglePlayMode() {
 
 function setEditorButtonsVisibility(shouldHide) {
   const displayValue = shouldHide ? "none" : "";
-  ["importBtn", "exportBtn", "resetBtn", "showAllLevelsBtn"].forEach((key) => {
+  ["importBtn", "showAllLevelsBtn"].forEach((key) => {
     const button = state.dom[key];
     if (button) {
       button.style.display = displayValue;
     }
   });
+  if (state.dom.resetBtn) {
+    state.dom.resetBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";
+  }
+  if (state.dom.exportBtn) {
+    state.dom.exportBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";
+  }
   const saveAsLevelBtn = state.dom.saveAsLevelBtn;
   if (saveAsLevelBtn) {
     saveAsLevelBtn.style.display = shouldHide || isMapEmpty() ? "none" : "";

@@ -10,6 +10,8 @@ import {
   getAllLevels,
   updateLevelToFirestore,
   deleteLevelFromFirestore,
+  getLevelById,
+  setLevelNotBeingEdited,
 } from "../map/firestore.js";
 import { displayBackground } from "../render/game.js";
 
@@ -54,6 +56,14 @@ export function updateSaveButtonVisibility() {
   if (dom.saveAsLevelBtn) {
     dom.saveAsLevelBtn.style.display = !isEmpty ? "" : "none";
   }
+
+  if (dom.resetBtn && !state.gameplay.isPlaying) {
+    dom.resetBtn.style.display = isEmpty ? "none" : "";
+  }
+
+  if (dom.exportBtn && !state.gameplay.isPlaying) {
+    dom.exportBtn.style.display = isEmpty ? "none" : "";
+  }
 }
 
 export function registerUIEvents() {
@@ -88,9 +98,13 @@ export function registerUIEvents() {
     }
   });
 
-  dom.importFileInput.addEventListener("change", (e) => {
+  dom.importFileInput.addEventListener("change", async (e) => {
     if (e.target.files.length > 0) {
       saveStateToUndo();
+      if (state.lastLoadedLevel.id) {
+        initFirestore();
+        await setLevelNotBeingEdited(state.lastLoadedLevel.id);
+      }
       importMap(e.target.files[0]);
       state.lastLoadedLevel.id = null;
       state.lastLoadedLevel.author = null;
@@ -256,6 +270,24 @@ async function handleSaveLevel() {
     }
 
     initFirestore();
+    const existingLevel = await getLevelById(state.lastLoadedLevel.id);
+
+    if (!existingLevel) {
+      alert(
+        "This map was deleted from the database moments ago. It will now be saved as a new map."
+      );
+      const levelId = await saveLevelToFirestore(state.lastLoadedLevel.author);
+
+      if (levelId) {
+        state.lastLoadedLevel.id = levelId;
+        state.lastLoadedLevel.author = state.lastLoadedLevel.author;
+        saveLastLoadedLevel();
+        updateSaveButtonVisibility();
+        alert(`Map saved as new successfully! ID: ${levelId}`);
+      }
+      return;
+    }
+
     const success = await updateLevelToFirestore(state.lastLoadedLevel.id);
 
     if (success) {
@@ -300,9 +332,15 @@ async function handleShowAllLevels() {
         ? level.updatedAt.toDate().toLocaleString()
         : "Unknown";
       const isCurrentlyLoaded = level.id === state.lastLoadedLevel.id;
+      const isBeingEdited = level.isBeingEdited === true;
       const rowOpacity = isCurrentlyLoaded ? "0.5" : "1";
-      const checkboxDisplay = isCurrentlyLoaded ? "none" : "block";
-      const importButtonDisplay = isCurrentlyLoaded ? "none" : "block";
+      const checkboxDisplay =
+        isCurrentlyLoaded || isBeingEdited ? "none" : "block";
+      const importButtonDisplay =
+        isCurrentlyLoaded || isBeingEdited ? "none" : "block";
+      const beingEditedIndicator = isBeingEdited
+        ? '<div style="color: #ff9800; font-weight: bold; margin-top: 5px;">⚠️ Being Edited</div>'
+        : "";
 
       html += `
         <div class="level-row" data-level-id="${level.id}" style="
@@ -345,6 +383,7 @@ async function handleShowAllLevels() {
               <div>Updated: ${updatedAt}</div>
               <br>
               <div>ID: ${id}</div>
+              ${beingEditedIndicator}
             </div>
           </div>
           <div style="
@@ -391,7 +430,7 @@ async function handleShowAllLevels() {
                 display: ${importButtonDisplay};
               "
             >
-              Import Map
+              Open Map
             </button>
           </div>
         </div>
@@ -488,6 +527,24 @@ async function handleShowAllLevels() {
 
             if (selectedIds.length === 0) return;
 
+            const levelsToDelete = selectedIds
+              .map((id) => levels.find((l) => l.id === id))
+              .filter(Boolean);
+            const beingEditedLevels = levelsToDelete.filter(
+              (level) => level.isBeingEdited === true
+            );
+
+            if (beingEditedLevels.length > 0) {
+              alert(
+                `Cannot delete ${beingEditedLevels.length} level design${
+                  beingEditedLevels.length > 1 ? "s" : ""
+                } that ${
+                  beingEditedLevels.length > 1 ? "are" : "is"
+                } currently being edited.`
+              );
+              return;
+            }
+
             const count = selectedIds.length;
             const confirmMessage = `Are you sure you want to permanently delete ${count} level design${
               count > 1 ? "s" : ""
@@ -559,21 +616,40 @@ async function handleShowAllLevels() {
     importButtons.forEach((button) => {
       button.addEventListener("click", async (e) => {
         const levelId = e.target.getAttribute("data-level-id");
-        const level = levels.find((l) => l.id === levelId);
 
-        if (level && level.mapData) {
-          const confirmed = confirm(
-            "Import this level? This will replace your current map."
+        initFirestore();
+        const level = await getLevelById(levelId);
+
+        if (!level) {
+          alert(
+            "This level no longer exists in the database. Please refresh the list."
           );
-          if (confirmed) {
-            saveStateToUndo();
-            importMapFromData(level.mapData);
-            state.lastLoadedLevel.id = level.id;
-            state.lastLoadedLevel.author = level.author || null;
-            saveLastLoadedLevel();
-            updateSaveButtonVisibility();
-            dom.levelModal.style.display = "none";
-          }
+          await handleShowAllLevels();
+          return;
+        }
+
+        if (!level.mapData) {
+          alert("This level has no map data available.");
+          return;
+        }
+
+        if (level.isBeingEdited === true) {
+          alert("This level is currently being edited and cannot be opened.");
+          return;
+        }
+
+        const confirmed = confirm(
+          "Open this level? This will replace your current map."
+        );
+        if (confirmed) {
+          saveStateToUndo();
+          importMapFromData(level.mapData);
+          await setLevelNotBeingEdited(levelId);
+          state.lastLoadedLevel.id = level.id;
+          state.lastLoadedLevel.author = level.author || null;
+          saveLastLoadedLevel();
+          updateSaveButtonVisibility();
+          dom.levelModal.style.display = "none";
         }
       });
     });
