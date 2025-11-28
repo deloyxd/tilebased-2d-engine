@@ -1,18 +1,45 @@
 import state from "../state.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
-import { updateSaveButtonVisibility, showLandingPage, hideLandingPage, isMapEmpty } from "../events/uiEvents.js";
+import { updateSaveButtonVisibility, showLandingPage, hideLandingPage, isMapEmpty, showLandingPageLoading, hideLandingPageLoading } from "../events/uiEvents.js";
 import { saveStateToUndo } from "./history.js";
+import { initFirestore, getLevelById, setLevelBeingEdited } from "./firestore.js";
+import { importMapFromData } from "./io.js";
 
-export function loadMap() {
+export async function loadMap() {
   const { tiles } = state;
   state.maxCanvasWidth = window.innerWidth;
   state.maxCanvasHeight = window.innerHeight;
 
+  loadLastLoadedLevel();
+
+  if (state.lastLoadedLevel.id) {
+    showLandingPageLoading();
+    showLandingPage();
+    try {
+      initFirestore();
+      const level = await getLevelById(state.lastLoadedLevel.id);
+
+      if (level && level.mapData) {
+        importMapFromData(level.mapData);
+        await setLevelBeingEdited(level.id);
+        state.lastLoadedLevel.id = level.id;
+        state.lastLoadedLevel.author = level.author || null;
+        saveLastLoadedLevel();
+        updateSaveButtonVisibility();
+        return;
+      }
+    } catch (error) {
+      console.error("Error loading last loaded level from Firestore:", error);
+    } finally {
+      hideLandingPageLoading();
+    }
+  }
+
   const savedMap = localStorage.getItem("map");
   if (!savedMap) {
     resetMap();
-    loadLastLoadedLevel();
     showLandingPage();
+    hideLandingPageLoading();
     return;
   }
 
@@ -34,10 +61,10 @@ export function loadMap() {
     data.layers && data.layers.length ? data.layers : legacyLayer,
     data.activeLayerIndex ?? 0,
   );
-  loadLastLoadedLevel();
   
   if (isMapEmpty()) {
     showLandingPage();
+    hideLandingPageLoading();
   } else {
     hideLandingPage();
   }

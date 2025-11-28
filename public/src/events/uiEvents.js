@@ -64,6 +64,19 @@ export function hideLandingPage() {
   if (dom.exitMapBtn) {
     dom.exitMapBtn.style.display = "";
   }
+  hideLandingPageLoading();
+}
+
+export function showLandingPageLoading() {
+  if (!dom || !dom.landingPageLoading || !dom.landingPageContent) return;
+  dom.landingPageLoading.style.display = "flex";
+  dom.landingPageContent.style.display = "none";
+}
+
+export function hideLandingPageLoading() {
+  if (!dom || !dom.landingPageLoading || !dom.landingPageContent) return;
+  dom.landingPageLoading.style.display = "none";
+  dom.landingPageContent.style.display = "flex";
 }
 
 export function exitMap() {
@@ -79,6 +92,7 @@ export function exitMap() {
   saveLastLoadedLevel();
   resetMap();
   showLandingPage();
+  hideLandingPageLoading();
   updateSaveButtonVisibility();
 }
 
@@ -106,8 +120,11 @@ export function updateSaveButtonVisibility() {
   }
 
   if (dom.revertBtn && !state.gameplay.isPlaying) {
-    dom.revertBtn.style.display =
-      !isEmpty && state.originalMapData ? "" : "none";
+    dom.revertBtn.style.display = state.originalMapData ? "" : "none";
+  }
+
+  if (dom.exitMapBtn) {
+    dom.exitMapBtn.style.display = state.gameplay.isPlaying ? "none" : "";
   }
 }
 
@@ -414,7 +431,7 @@ function showPasswordModal() {
 
     const handleSubmit = async () => {
       const editorPassword = await getEditorPassword();
-      if (editorPassword === '') {
+      if (editorPassword === "") {
         cleanup();
         resolve();
         return;

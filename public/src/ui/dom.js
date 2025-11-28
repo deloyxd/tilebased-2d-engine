@@ -28,6 +28,8 @@ export function initDomReferences() {
   state.dom.createNewMapBtn = document.getElementById("createNewMapBtn");
   state.dom.revertBtn = document.getElementById("revertBtn");
   state.dom.landingPage = document.getElementById("landingPage");
+  state.dom.landingPageLoading = document.getElementById("landingPageLoading");
+  state.dom.landingPageContent = document.getElementById("landingPageContent");
   state.dom.playGameBtn = document.getElementById("playGameBtn");
   state.dom.editLevelsBtn = document.getElementById("editLevelsBtn");
   state.dom.exitMapBtn = document.getElementById("exitMapBtn");

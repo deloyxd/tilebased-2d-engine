@@ -98,6 +98,8 @@ const state = {
     createNewMapBtn: null,
     revertBtn: null,
     landingPage: null,
+    landingPageLoading: null,
+    landingPageContent: null,
     playGameBtn: null,
     editLevelsBtn: null,
     exitMapBtn: null,
