@@ -18,12 +18,13 @@ import {
   setLevelBeingEdited,
   setLevelNotBeingEdited,
 } from "../map/firestore.js";
+import { getEditorPassword } from "../config.js";
 import { displayBackground } from "../render/game.js";
 
 let dom = null;
 let selectionHandlersInitialized = false;
 
-function isMapEmpty() {
+export function isMapEmpty() {
   if (!state.tiles.layers || state.tiles.layers.length === 0) {
     return true;
   }
@@ -45,6 +46,40 @@ function isMapEmpty() {
   }
 
   return true;
+}
+
+export function showLandingPage() {
+  if (!dom || !dom.landingPage) return;
+  state.landingPage.isVisible = true;
+  dom.landingPage.style.display = "flex";
+  if (dom.exitMapBtn) {
+    dom.exitMapBtn.style.display = "none";
+  }
+}
+
+export function hideLandingPage() {
+  if (!dom || !dom.landingPage) return;
+  state.landingPage.isVisible = false;
+  dom.landingPage.style.display = "none";
+  if (dom.exitMapBtn) {
+    dom.exitMapBtn.style.display = "";
+  }
+}
+
+export function exitMap() {
+  if (state.gameplay.isPlaying) {
+    togglePlayMode();
+  }
+  if (state.lastLoadedLevel.id) {
+    initFirestore();
+    setLevelNotBeingEdited(state.lastLoadedLevel.id).catch(console.error);
+  }
+  state.lastLoadedLevel.id = null;
+  state.lastLoadedLevel.author = null;
+  saveLastLoadedLevel();
+  resetMap();
+  showLandingPage();
+  updateSaveButtonVisibility();
 }
 
 export function updateSaveButtonVisibility() {
@@ -78,6 +113,17 @@ export function updateSaveButtonVisibility() {
 
 export function registerUIEvents() {
   dom = state.dom;
+
+  if (dom.togglePasswordBtn && dom.passwordInput) {
+    dom.togglePasswordBtn.addEventListener("click", () => {
+      const type =
+        dom.passwordInput.getAttribute("type") === "password"
+          ? "text"
+          : "password";
+      dom.passwordInput.setAttribute("type", type);
+      dom.togglePasswordBtn.textContent = type === "password" ? "👁️" : "🙈";
+    });
+  }
 
   if (dom.testBtn) {
     dom.testBtn.addEventListener("click", togglePlayMode);
@@ -130,6 +176,7 @@ export function registerUIEvents() {
       state.lastLoadedLevel.id = null;
       state.lastLoadedLevel.author = null;
       saveLastLoadedLevel();
+      hideLandingPage();
       updateSaveButtonVisibility();
       e.target.value = "";
     }
@@ -183,6 +230,20 @@ export function registerUIEvents() {
         }
       }
     });
+  }
+
+  if (dom.exitMapBtn) {
+    dom.exitMapBtn.addEventListener("click", exitMap);
+  }
+
+  if (dom.playGameBtn) {
+    dom.playGameBtn.addEventListener("click", () => {
+      // TODO
+    });
+  }
+
+  if (dom.editLevelsBtn) {
+    dom.editLevelsBtn.addEventListener("click", handleEditLevels);
   }
 
   updateSaveButtonVisibility();
@@ -324,7 +385,91 @@ async function handleSaveLevel() {
   }
 }
 
-async function handleShowAllLevels() {
+function showPasswordModal() {
+  return new Promise((resolve, reject) => {
+    if (!dom.passwordModal || !dom.passwordInput) {
+      reject("Password modal elements not found");
+      return;
+    }
+
+    dom.passwordInput.value = "";
+    dom.passwordError.style.display = "none";
+    dom.passwordError.textContent = "";
+    dom.passwordModal.style.display = "block";
+    dom.passwordInput.focus();
+
+    const cleanup = () => {
+      dom.passwordModal.style.display = "none";
+      dom.passwordInput.value = "";
+      dom.passwordError.style.display = "none";
+      dom.passwordError.textContent = "";
+      dom.passwordInput.removeEventListener("keydown", handleKeyDown);
+      dom.passwordSubmitBtn.removeEventListener("click", handleSubmit);
+      dom.passwordCancelBtn.removeEventListener("click", handleCancel);
+      if (dom.passwordModal) {
+        dom.passwordModal.removeEventListener("click", handleModalClick);
+      }
+    };
+
+    const handleSubmit = async () => {
+      const password = dom.passwordInput.value;
+      if (!password) {
+        dom.passwordError.textContent = "Please enter a password";
+        dom.passwordError.style.display = "block";
+        return;
+      }
+
+      const editorPassword = await getEditorPassword();
+      if (password !== editorPassword) {
+        dom.passwordError.textContent = "Incorrect password. Access denied.";
+        dom.passwordError.style.display = "block";
+        dom.passwordInput.value = "";
+        dom.passwordInput.focus();
+        return;
+      }
+
+      cleanup();
+      resolve(password);
+    };
+
+    const handleCancel = () => {
+      cleanup();
+      reject("Cancelled");
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") {
+        handleSubmit();
+      } else if (e.key === "Escape") {
+        handleCancel();
+      }
+    };
+
+    const handleModalClick = (e) => {
+      if (e.target === dom.passwordModal) {
+        handleCancel();
+      }
+    };
+
+    dom.passwordInput.addEventListener("keydown", handleKeyDown);
+    dom.passwordSubmitBtn.addEventListener("click", handleSubmit);
+    dom.passwordCancelBtn.addEventListener("click", handleCancel);
+    dom.passwordModal.addEventListener("click", handleModalClick);
+  });
+}
+
+async function handleEditLevels() {
+  try {
+    await showPasswordModal();
+    await handleShowAllLevels(true);
+  } catch (error) {
+    if (error !== "Cancelled") {
+      console.error("Password modal error:", error);
+    }
+  }
+}
+
+async function handleShowAllLevels(hideCheckboxes = false) {
   if (!dom.showAllLevelsBtn || !dom.levelModal || !dom.levelModalContent)
     return;
 
@@ -359,7 +504,7 @@ async function handleShowAllLevels() {
       }
       const rowOpacity = isCurrentlyLoaded || isBeingEdited ? "0.5" : "1";
       const checkboxDisplay =
-        isCurrentlyLoaded || isBeingEdited ? "none" : "block";
+        hideCheckboxes || isCurrentlyLoaded || isBeingEdited ? "none" : "block";
       const importButtonDisplay =
         isCurrentlyLoaded || isBeingEdited ? "none" : "block";
       const beingEditedIndicator = isBeingEdited
@@ -477,6 +622,16 @@ async function handleShowAllLevels() {
       dom.levelModalContent.querySelectorAll(".import-level-btn");
 
     function updateButtonVisibility() {
+      if (hideCheckboxes) {
+        if (selectAllBtn) {
+          selectAllBtn.style.display = "none";
+        }
+        if (deleteSelectedBtn) {
+          deleteSelectedBtn.style.display = "none";
+        }
+        return;
+      }
+
       const currentCheckboxes =
         dom.levelModalContent.querySelectorAll(".level-checkbox");
       const currentImportButtons =
@@ -508,11 +663,15 @@ async function handleShowAllLevels() {
       });
     }
 
-    checkboxes.forEach((checkbox) => {
-      checkbox.addEventListener("change", updateButtonVisibility);
-    });
+    if (!hideCheckboxes) {
+      checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", updateButtonVisibility);
+      });
+    }
 
-    if (!selectionHandlersInitialized) {
+    updateButtonVisibility();
+
+    if (!selectionHandlersInitialized && !hideCheckboxes) {
       if (selectAllBtn) {
         selectAllBtn.addEventListener("click", function selectAllHandler() {
           const currentCheckboxes =
@@ -615,7 +774,7 @@ async function handleShowAllLevels() {
                     : ""
                 }`
               );
-              await handleShowAllLevels();
+              await handleShowAllLevels(false);
               const selectAllBtn =
                 document.getElementById("selectAllLevelsBtn");
               const deleteSelectedBtn = document.getElementById(
@@ -650,7 +809,7 @@ async function handleShowAllLevels() {
           alert(
             "This level no longer exists in the database. Please refresh the list."
           );
-          await handleShowAllLevels();
+          await handleShowAllLevels(hideCheckboxes);
           return;
         }
 
@@ -675,6 +834,7 @@ async function handleShowAllLevels() {
           state.lastLoadedLevel.id = level.id;
           state.lastLoadedLevel.author = level.author || null;
           saveLastLoadedLevel();
+          hideLandingPage();
           updateSaveButtonVisibility();
         }
       });

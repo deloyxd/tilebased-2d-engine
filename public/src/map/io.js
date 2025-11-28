@@ -2,6 +2,7 @@ import state from "../state.js";
 import { saveMap } from "./storage.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
 import { saveStateToUndo } from "./history.js";
+import { hideLandingPage } from "../events/uiEvents.js";
 
 export function importMap(file) {
   const reader = new FileReader();
@@ -31,6 +32,7 @@ export function importMapFromData(data) {
     data.activeLayerIndex ?? 0,
   );
   saveMap();
+  hideLandingPage();
 }
 
 export function revertToOriginalMap() {

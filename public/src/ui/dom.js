@@ -10,7 +10,7 @@ export function initDomReferences() {
   state.palette.context = state.palette.canvas.getContext("2d");
   state.palette.borderWidth = parseInt(
     getComputedStyle(state.palette.root).borderWidth,
-    10,
+    10
   );
 
   state.dom.testBtn = document.getElementById("testBtn");
@@ -26,6 +26,16 @@ export function initDomReferences() {
   state.dom.levelModalClose = document.getElementById("levelModalClose");
   state.dom.levelModalContent = document.getElementById("levelModalContent");
   state.dom.revertBtn = document.getElementById("revertBtn");
+  state.dom.landingPage = document.getElementById("landingPage");
+  state.dom.playGameBtn = document.getElementById("playGameBtn");
+  state.dom.editLevelsBtn = document.getElementById("editLevelsBtn");
+  state.dom.exitMapBtn = document.getElementById("exitMapBtn");
+  state.dom.passwordModal = document.getElementById("passwordModal");
+  state.dom.passwordInput = document.getElementById("passwordInput");
+  state.dom.togglePasswordBtn = document.getElementById("togglePasswordBtn");
+  state.dom.passwordSubmitBtn = document.getElementById("passwordSubmitBtn");
+  state.dom.passwordCancelBtn = document.getElementById("passwordCancelBtn");
+  state.dom.passwordError = document.getElementById("passwordError");
 
   return state;
 }

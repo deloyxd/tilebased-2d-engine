@@ -96,6 +96,13 @@ const state = {
     levelModalClose: null,
     levelModalContent: null,
     revertBtn: null,
+    landingPage: null,
+    playGameBtn: null,
+    editLevelsBtn: null,
+    exitMapBtn: null,
+  },
+  landingPage: {
+    isVisible: true,
   },
   lastLoadedLevel: {
     id: null,

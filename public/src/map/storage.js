@@ -1,6 +1,6 @@
 import state from "../state.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
-import { updateSaveButtonVisibility } from "../events/uiEvents.js";
+import { updateSaveButtonVisibility, showLandingPage, hideLandingPage, isMapEmpty } from "../events/uiEvents.js";
 import { saveStateToUndo } from "./history.js";
 
 export function loadMap() {
@@ -12,6 +12,7 @@ export function loadMap() {
   if (!savedMap) {
     resetMap();
     loadLastLoadedLevel();
+    showLandingPage();
     return;
   }
 
@@ -34,6 +35,13 @@ export function loadMap() {
     data.activeLayerIndex ?? 0,
   );
   loadLastLoadedLevel();
+  
+  if (isMapEmpty()) {
+    showLandingPage();
+  } else {
+    hideLandingPage();
+  }
+  
   updateSaveButtonVisibility();
 }
 
@@ -72,7 +80,6 @@ export function saveMap() {
     mapMaxRow: state.mapMaxRow,
     layers: state.tiles.layers,
     activeLayerIndex: state.editing.activeLayerIndex,
-    // Legacy single-layer fallback
     tiles:
       state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || [],
   };
