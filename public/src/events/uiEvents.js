@@ -354,7 +354,7 @@ async function handleShowAllLevels() {
         : "Unknown";
       const isCurrentlyLoaded = level.id === state.lastLoadedLevel.id;
       const isBeingEdited = level.isBeingEdited === true || isCurrentlyLoaded;
-      if (level.isBeingEdited === false) {
+      if (level.isBeingEdited === false && isCurrentlyLoaded) {
         setLevelBeingEdited(level.id);
       }
       const rowOpacity = isCurrentlyLoaded || isBeingEdited ? "0.5" : "1";
