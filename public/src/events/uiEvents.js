@@ -110,7 +110,7 @@ export function exitMap() {
   updateSaveButtonVisibility();
 }
 
-function shouldExitEditor() {
+function shouldExit() {
   const isPlayMode = state.gameplay.playMode.isActive;
   const defaultMessage = isPlayMode
     ? "Are you sure you want to quit?"
@@ -280,7 +280,7 @@ export function registerUIEvents() {
 
   if (dom.exitMapBtn) {
     dom.exitMapBtn.addEventListener("click", () => {
-      if (shouldExitEditor()) {
+      if (shouldExit()) {
         exitMap();
       }
     });
