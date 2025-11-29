@@ -104,7 +104,7 @@ function setEditorButtonsVisibility(shouldHide) {
   });
 
   if (state.dom.testBtn) {
-    state.dom.testBtn.style.display = isPlayMode ? "none" : displayValue;
+    state.dom.testBtn.style.display = isPlayMode ? "none" : "";
   }
 
   if (state.dom.resetBtn) {
