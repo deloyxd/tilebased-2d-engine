@@ -132,6 +132,10 @@ export function updateSaveButtonVisibility() {
     state.lastLoadedLevel.id && state.lastLoadedLevel.author;
   const isPlayMode = state.gameplay.playMode.isActive;
 
+  if (dom.testBtn) {
+    dom.testBtn.style.display = "";
+  }
+
   if (dom.saveLevelBtn) {
     dom.saveLevelBtn.style.display = !isEmpty && hasLoadedLevel ? "" : "none";
   }
@@ -1076,7 +1080,6 @@ async function handleShowAllLevels(hideCheckboxes = false) {
           return;
         }
 
-        console.log(state.gameplay.playMode.isActive);
         if (hideCheckboxes) {
           continueOpenMap();
         } else {
