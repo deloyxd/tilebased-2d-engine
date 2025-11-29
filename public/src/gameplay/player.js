@@ -19,6 +19,7 @@ const PLAYER_CONSTANTS = {
   swimJumpForce: -200,
   frameDuration: 0.14,
   collisionPadding: 6,
+  frontCollisionPadding: 8,
   spawnOffsetX: 8
 };
 
@@ -674,8 +675,13 @@ function getCollisionOffsetX() {
   const player = state.player;
   const facingRight = player.facing >= 0;
   return facingRight
-    ? Math.max(0, player.width - player.collisionWidth - 5)
-    : 5;
+    ? Math.max(
+        0,
+        player.width -
+          player.collisionWidth -
+          PLAYER_CONSTANTS.frontCollisionPadding
+      )
+    : PLAYER_CONSTANTS.frontCollisionPadding;
 }
 
 function getTileLabelAt(col, row) {
