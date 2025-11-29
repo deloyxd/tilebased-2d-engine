@@ -1,6 +1,9 @@
 import state from "../state.js";
 import { getTileTypeLabel } from "../tiles/types.js";
 import { placeTileAt } from "../tiles/autotile.js";
+import { proceedToNextLevel } from "../events/uiEvents.js";
+import { removeTouchedTile } from "./levels.js";
+import { showGameTextModal } from "../events/playerControls.js";
 
 const SIGN_TEXT = {
   17: {
@@ -52,6 +55,13 @@ const GOLDEN_BOX_LOCKED_EFFECTS = {
   ],
   cameraPanDuration: 500
 };
+
+const FLAG_HEAD_CONFIG = {
+  position: { col: 37, row: 18 },
+  cooldownDuration: 5000
+};
+
+let flagHeadLastTriggerTime = 0;
 
 function getWorldPosition(col, row) {
   const tileSize = state.tiles.size || 36;
@@ -375,6 +385,90 @@ function resetGoldenBoxBumpState() {
   goldenBoxBumpTriggered = false;
 }
 
+function resetFlagHeadCooldown() {
+  flagHeadLastTriggerTime = 0;
+}
+
+function removeSpawnedKey() {
+  const keyPos = LEVER_EFFECTS.keySpawnPosition;
+  const mapIndex = keyPos.row * state.mapMaxColumn + keyPos.col;
+
+  if (mapIndex < 0 || mapIndex >= state.mapMaxColumn * state.mapMaxRow) {
+    return;
+  }
+
+  const emptyTileIndex = state.tiles.empty[0] || -1;
+
+  for (const layer of state.tiles.layers) {
+    const tileIndex = layer.tiles[mapIndex];
+    if (tileIndex !== undefined && !state.tiles.empty.includes(tileIndex)) {
+      const label = getTileTypeLabel(tileIndex);
+      if (label && label.toLowerCase().includes("key")) {
+        const originalActiveIndex = state.editing.activeLayerIndex;
+        const targetLayerIndex = state.tiles.layers.indexOf(layer);
+
+        state.editing.activeLayerIndex = targetLayerIndex;
+        placeTileAt(mapIndex, emptyTileIndex);
+
+        state.editing.activeLayerIndex = originalActiveIndex;
+        break;
+      }
+    }
+  }
+}
+
+function resetLeverAndKeyState() {
+  removeSpawnedKey();
+
+  if (state.gameplay.interaction) {
+    if (!state.gameplay.interaction.leverStates) {
+      state.gameplay.interaction.leverStates = {};
+    }
+    const leverKey = `37,15`;
+    delete state.gameplay.interaction.leverStates[leverKey];
+  }
+}
+
+function handleFlagHeadTouch(tileData) {
+  const collectibles = state.gameplay.collectibles;
+  if (!collectibles) {
+    return;
+  }
+
+  const diamondsCollected = collectibles.diamondsCollected || 0;
+  const diamondsTotal = collectibles.diamondsTotal || 0;
+
+  if (diamondsCollected < diamondsTotal) {
+    const currentTime = Date.now();
+    const timeSinceLastTrigger = currentTime - flagHeadLastTriggerTime;
+
+    if (timeSinceLastTrigger < FLAG_HEAD_CONFIG.cooldownDuration) {
+      removeTouchedTile(tileData.col, tileData.row);
+      return;
+    }
+
+    flagHeadLastTriggerTime = currentTime;
+
+    const remaining = diamondsTotal - diamondsCollected;
+    const message = `You need to collect all <fun>diamonds</fun> to finish the level! ${remaining} diamond${
+      remaining !== 1 ? "s" : ""
+    } remaining. <bloody>- Jestley</bloody>`;
+
+    showGameTextModal(message);
+    removeTouchedTile(tileData.col, tileData.row);
+    return;
+  }
+
+  if (diamondsTotal === 0) {
+    proceedToNextLevel();
+    return;
+  }
+
+  if (diamondsCollected === diamondsTotal) {
+    proceedToNextLevel();
+  }
+}
+
 function checkGoldenBoxBump() {
   if (!state.gameplay.isPlaying || !state.canvas) return;
   if (!state.tiles.layers.length || !state.mapMaxColumn || !state.mapMaxRow)
@@ -494,6 +588,11 @@ export default {
       col: 37,
       row: 15,
       onTouch: (tileData) => interactWithObject("lever", tileData)
+    },
+    {
+      col: FLAG_HEAD_CONFIG.position.col,
+      row: FLAG_HEAD_CONFIG.position.row,
+      onTouch: (tileData) => handleFlagHeadTouch(tileData)
     }
   ],
   onTileTouch: (tileData) => {
@@ -512,12 +611,48 @@ export default {
     if (lower.includes("key")) {
       const keyPos = KEY_CONFIG.keyPosition;
       if (tileData.col === keyPos.col && tileData.row === keyPos.row) {
-        collectKey(tileData);
+        const mapIndex = keyPos.row * state.mapMaxColumn + keyPos.col;
+        let keyTileExists = false;
+
+        for (const layer of state.tiles.layers) {
+          const tileIndex = layer.tiles[mapIndex];
+          if (
+            tileIndex !== undefined &&
+            !state.tiles.empty.includes(tileIndex)
+          ) {
+            const tileLabel = getTileTypeLabel(tileIndex);
+            if (tileLabel && tileLabel.toLowerCase().includes("key")) {
+              keyTileExists = true;
+              break;
+            }
+          }
+        }
+
+        const interaction = state.gameplay.interaction;
+        const leverKey = "37,15";
+        const leverActivated =
+          interaction &&
+          interaction.leverStates &&
+          interaction.leverStates[leverKey] === true;
+
+        if (keyTileExists && leverActivated) {
+          collectKey(tileData);
+        }
+      }
+      return;
+    }
+
+    if (lower.includes("flag")) {
+      const flagPos = FLAG_HEAD_CONFIG.position;
+      if (tileData.col === flagPos.col && tileData.row === flagPos.row) {
+        handleFlagHeadTouch(tileData);
       }
       return;
     }
   },
   activateLever: activateLever,
   checkGoldenBoxBump: checkGoldenBoxBump,
-  resetGoldenBoxBumpState: resetGoldenBoxBumpState
+  resetGoldenBoxBumpState: resetGoldenBoxBumpState,
+  resetFlagHeadCooldown: resetFlagHeadCooldown,
+  resetLeverAndKeyState: resetLeverAndKeyState
 };

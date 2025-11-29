@@ -185,8 +185,16 @@ export function resetLevelState() {
     currentLevelData.resetGoldenBoxBumpState();
   }
 
+  if (
+    currentLevelData &&
+    typeof currentLevelData.resetFlagHeadCooldown === "function"
+  ) {
+    currentLevelData.resetFlagHeadCooldown();
+  }
+
   touchedTiles.clear();
   currentLevelIndex = -1;
+  const previousLevelData = currentLevelData;
   currentLevelData = null;
   loadingLevelData = false;
 
@@ -228,9 +236,21 @@ export function resetLevelState() {
     updateBackgroundTiles();
   }
 
+  if (
+    previousLevelData &&
+    typeof previousLevelData.resetLeverAndKeyState === "function"
+  ) {
+    previousLevelData.resetLeverAndKeyState();
+  }
+
   recalculateDiamondTotalsFromMap();
 }
 
 export function getCurrentLevelData() {
   return currentLevelData;
+}
+
+export function removeTouchedTile(col, row) {
+  const tileKey = getTileKey(col, row);
+  touchedTiles.delete(tileKey);
 }

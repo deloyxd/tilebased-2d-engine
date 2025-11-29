@@ -112,7 +112,7 @@ function renderGameText(container, text) {
   flushBuffer();
 }
 
-function showGameTextModal(text) {
+export function showGameTextModal(text) {
   const modal = state.dom.gameTextModal;
   const content = state.dom.gameTextModalContent;
   if (!modal || !content) return;
