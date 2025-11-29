@@ -319,10 +319,6 @@ function collectKey(tileData) {
     collectibles.keysCollected = 0;
   }
 
-  const key = getKeyKey(tileData.col, tileData.row);
-  if (collectibles.collectedKeyKeys.has(key)) return;
-
-  collectibles.collectedKeyKeys.add(key);
   collectibles.keysCollected += 1;
 
   spawnObject(
@@ -330,6 +326,8 @@ function collectKey(tileData) {
     KEY_CONFIG.tileSpawnPosition.row,
     KEY_CONFIG.groundTileIndex
   );
+
+  removeTiles([LEVER_EFFECTS.keySpawnPosition], 500);
 }
 
 function getLeverKey(col, row) {
@@ -747,44 +745,12 @@ export default {
     }
 
     if (lower.includes("key")) {
-      let hasFailed = true;
       if (state.gameplay.collectibles.keysTotal === 0) {
         resetLeverAndKeyState();
-        callback(hasFailed);
+        callback(true);
         return;
       }
-      const keyPos = KEY_CONFIG.keyPosition;
-      if (tileData.col === keyPos.col && tileData.row === keyPos.row) {
-        const mapIndex = keyPos.row * state.mapMaxColumn + keyPos.col;
-        let keyTileExists = false;
-
-        for (const layer of state.tiles.layers) {
-          const tileIndex = layer.tiles[mapIndex];
-          if (
-            tileIndex !== undefined &&
-            !state.tiles.empty.includes(tileIndex)
-          ) {
-            const tileLabel = getTileTypeLabel(tileIndex);
-            if (tileLabel && tileLabel.toLowerCase().includes("key")) {
-              keyTileExists = true;
-              break;
-            }
-          }
-        }
-
-        const interaction = state.gameplay.interaction;
-        const leverKey = "37,15";
-        const leverActivated =
-          interaction &&
-          interaction.leverStates &&
-          interaction.leverStates[leverKey] === true;
-
-        if (keyTileExists && leverActivated) {
-          collectKey(tileData);
-          hasFailed = false;
-        }
-      }
-      callback(hasFailed);
+      collectKey(tileData);
       return;
     }
 
