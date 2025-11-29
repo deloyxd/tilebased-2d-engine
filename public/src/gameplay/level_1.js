@@ -40,8 +40,17 @@ const KEY_CONFIG = {
 const GOLDEN_BOX_LOCKED_CONFIG = {
   position: { col: 29, row: 19 },
   onBump: (tileData) => {
-    console.log("Player bumped into golden box locked at:", tileData);
+    handleGoldBoxLockedActivation(tileData);
   }
+};
+
+const GOLDEN_BOX_LOCKED_EFFECTS = {
+  tilesToRemove: [
+    { col: 39, row: 17 },
+    { col: 39, row: 18 },
+    { col: 39, row: 19 }
+  ],
+  cameraPanDuration: 500
 };
 
 function getWorldPosition(col, row) {
@@ -157,6 +166,18 @@ function handleLeverActivation(tileData) {
         );
       }
     );
+  });
+}
+
+function handleGoldBoxLockedActivation(tileData) {
+  const firstTile = GOLDEN_BOX_LOCKED_EFFECTS.tilesToRemove[0];
+  panCameraTo(firstTile.col, firstTile.row, async () => {
+    await removeTiles(GOLDEN_BOX_LOCKED_EFFECTS.tilesToRemove, 500);
+
+    state.camera.targetX = null;
+    state.camera.targetY = null;
+    state.camera.panEasingFactor = null;
+    state.camera.isFollowingPlayer = true;
   });
 }
 
@@ -368,7 +389,6 @@ function checkGoldenBoxBump() {
   const isJumping = player.velocity.y < 0;
 
   if (!isJumping) {
-    goldenBoxBumpTriggered = false;
     return;
   }
 
