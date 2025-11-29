@@ -39,7 +39,6 @@ function recalculateDiamondTotalsFromMap() {
   const collectibles = state.gameplay?.collectibles;
   if (!collectibles) return;
 
-  // Reset collectibles state for the upcoming level
   collectibles.diamondsCollected = 0;
   collectibles.diamondsTotal = 0;
 
@@ -49,7 +48,6 @@ function recalculateDiamondTotalsFromMap() {
     collectibles.collectedDiamondKeys.length = 0;
   }
 
-  // If the map isn't ready yet, keep totals at 0
   if (!state.tiles.layers.length || !state.mapMaxColumn || !state.mapMaxRow) {
     return;
   }
@@ -170,7 +168,6 @@ export function resetLevelState() {
   currentLevelData = null;
   loadingLevelData = false;
 
-  // When a new level starts (or we reset), recompute diamond totals from the map
   recalculateDiamondTotalsFromMap();
 }
 

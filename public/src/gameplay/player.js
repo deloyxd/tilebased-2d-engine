@@ -774,16 +774,33 @@ function drawInteractionPrompt() {
   if (!state.gameplay.isPlaying || !state.ctx) return;
 
   const interaction = state.gameplay.interaction;
-  if (!interaction || !interaction.activeSign || interaction.isTextModalOpen) {
+  if (!interaction || interaction.isTextModalOpen) {
     return;
   }
 
   const tileSize = state.tiles.size || 1;
   const playerTilePos = getPlayerTilePositionPublic(tileSize);
-  if (
-    playerTilePos.col !== interaction.activeSign.col ||
-    playerTilePos.row !== interaction.activeSign.row
-  ) {
+
+  let activeObject = null;
+  if (interaction.activeLever) {
+    if (
+      playerTilePos.col === interaction.activeLever.col &&
+      playerTilePos.row === interaction.activeLever.row
+    ) {
+      activeObject = interaction.activeLever;
+    }
+  }
+
+  if (!activeObject && interaction.activeSign) {
+    if (
+      playerTilePos.col === interaction.activeSign.col &&
+      playerTilePos.row === interaction.activeSign.row
+    ) {
+      activeObject = interaction.activeSign;
+    }
+  }
+
+  if (!activeObject) {
     return;
   }
 

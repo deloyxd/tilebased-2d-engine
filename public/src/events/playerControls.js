@@ -1,5 +1,8 @@
 import state from "../state.js";
-import { getPlayerTilePositionPublic } from "../gameplay/levels.js";
+import {
+  getPlayerTilePositionPublic,
+  getCurrentLevelData
+} from "../gameplay/levels.js";
 
 const KEY_MAP = {
   ArrowLeft: ["left"],
@@ -120,7 +123,9 @@ function showGameTextModal(text) {
   if (!state.gameplay.interaction) {
     state.gameplay.interaction = {
       activeSign: null,
-      isTextModalOpen: false
+      activeLever: null,
+      isTextModalOpen: false,
+      leverStates: {}
     };
   }
   state.gameplay.interaction.isTextModalOpen = true;
@@ -150,16 +155,40 @@ function handleKeyDown(event) {
       return;
     }
 
-    if (!interaction.activeSign) return;
-
     const tileSize = state.tiles.size || 1;
     const playerTilePos = getPlayerTilePositionPublic(tileSize);
 
-    if (
-      playerTilePos.col === interaction.activeSign.col &&
-      playerTilePos.row === interaction.activeSign.row
-    ) {
-      showGameTextModal(interaction.activeSign.text || "");
+    if (interaction.activeLever) {
+      if (
+        playerTilePos.col === interaction.activeLever.col &&
+        playerTilePos.row === interaction.activeLever.row
+      ) {
+        const currentLevelData = getCurrentLevelData();
+        if (
+          currentLevelData &&
+          typeof currentLevelData.activateLever === "function"
+        ) {
+          currentLevelData.activateLever({
+            col: interaction.activeLever.col,
+            row: interaction.activeLever.row
+          });
+          const key = `${interaction.activeLever.col},${interaction.activeLever.row}`;
+          if (interaction.leverStates) {
+            interaction.activeLever.isActivated =
+              interaction.leverStates[key] || false;
+          }
+        }
+      }
+      return;
+    }
+
+    if (interaction.activeSign) {
+      if (
+        playerTilePos.col === interaction.activeSign.col &&
+        playerTilePos.row === interaction.activeSign.row
+      ) {
+        showGameTextModal(interaction.activeSign.text || "");
+      }
     }
 
     return;

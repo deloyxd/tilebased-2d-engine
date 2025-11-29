@@ -7,21 +7,78 @@ const SIGN_TEXT = {
   }
 };
 
-function customOnTouch(tileData) {
+// Lever configuration: col -> row -> { type: "activate-only" | "toggle", onActivate: function, onDeactivate: function }
+const LEVER_CONFIG = {
+  37: {
+    15: {
+      type: "toggle",
+      onActivate: (tileData) => {
+        console.log("Lever activated at", tileData.col, tileData.row);
+      },
+      onDeactivate: (tileData) => {
+        console.log("Lever deactivated at", tileData.col, tileData.row);
+      }
+    }
+  }
+  // Example lever at position (10, 10) - toggle type
+  // 10: {
+  //   10: {
+  //     type: "toggle",
+  //     onActivate: (tileData) => {
+  //       console.log("Lever activated at", tileData.col, tileData.row);
+  //     },
+  //     onDeactivate: (tileData) => {
+  //       console.log("Lever deactivated at", tileData.col, tileData.row);
+  //     }
+  //   }
+  // },
+  // Example lever at position (15, 15) - activate-only type
+  // 15: {
+  //   15: {
+  //     type: "activate-only",
+  //     onActivate: (tileData) => {
+  //       console.log("Lever activated (one-time) at", tileData.col, tileData.row);
+  //     }
+  //   }
+  // }
+};
+
+function interactWithObject(type, tileData) {
   if (!state.gameplay.interaction) {
     state.gameplay.interaction = {
       activeSign: null,
-      isTextModalOpen: false
+      activeLever: null,
+      isTextModalOpen: false,
+      leverStates: {}
     };
   }
 
-  const text = SIGN_TEXT[tileData.col]?.[tileData.row] || "...";
+  if (!state.gameplay.interaction.leverStates) {
+    state.gameplay.interaction.leverStates = {};
+  }
 
-  state.gameplay.interaction.activeSign = {
-    col: tileData.col,
-    row: tileData.row,
-    text
-  };
+  if (type === "sign") {
+    const text = SIGN_TEXT[tileData.col]?.[tileData.row] || "...";
+
+    state.gameplay.interaction.activeSign = {
+      col: tileData.col,
+      row: tileData.row,
+      text
+    };
+  } else if (type === "lever") {
+    const leverConfig = LEVER_CONFIG[tileData.col]?.[tileData.row];
+    if (!leverConfig) return;
+
+    const leverKey = `${tileData.col},${tileData.row}`;
+    state.gameplay.interaction.activeLever = {
+      col: tileData.col,
+      row: tileData.row,
+      type: leverConfig.type || "toggle",
+      onActivate: leverConfig.onActivate,
+      onDeactivate: leverConfig.onDeactivate,
+      isActivated: state.gameplay.interaction.leverStates[leverKey] || false
+    };
+  }
 }
 
 function getAllTilesFromMap() {
@@ -87,13 +144,67 @@ function collectDiamond(tileData) {
   collectibles.diamondsCollected += 1;
 }
 
+function getLeverKey(col, row) {
+  return `${col},${row}`;
+}
+
+function activateLever(tileData) {
+  if (!tileData || tileData.col === undefined || tileData.row === undefined) {
+    return;
+  }
+
+  const interaction = state.gameplay.interaction;
+  if (!interaction) return;
+
+  if (!interaction.leverStates) {
+    interaction.leverStates = {};
+  }
+
+  const key = getLeverKey(tileData.col, tileData.row);
+  const leverConfig = LEVER_CONFIG[tileData.col]?.[tileData.row];
+  if (!leverConfig) return;
+
+  const isActivated = interaction.leverStates[key] || false;
+  const leverType = leverConfig.type || "toggle";
+
+  if (leverType === "activate-only") {
+    if (isActivated) return;
+    interaction.leverStates[key] = true;
+    if (leverConfig.onActivate) {
+      leverConfig.onActivate(tileData);
+    }
+    return;
+  }
+
+  if (leverType === "toggle") {
+    const newState = !isActivated;
+    interaction.leverStates[key] = newState;
+
+    if (newState) {
+      if (leverConfig.onActivate) {
+        leverConfig.onActivate(tileData);
+      }
+    } else {
+      if (leverConfig.onDeactivate) {
+        leverConfig.onDeactivate(tileData);
+      }
+    }
+    return;
+  }
+}
+
 export default {
   getAllTiles: getAllTilesFromMap,
   tiles: [
     {
       col: 17,
       row: 19,
-      onTouch: (tileData) => customOnTouch(tileData)
+      onTouch: (tileData) => interactWithObject("sign", tileData)
+    },
+    {
+      col: 37,
+      row: 15,
+      onTouch: (tileData) => interactWithObject("lever", tileData)
     }
   ],
   onTileTouch: (tileData) => {
@@ -110,5 +221,6 @@ export default {
     }
 
     console.log("Level 1: Global tile touch handler", tileData);
-  }
+  },
+  activateLever: activateLever
 };
