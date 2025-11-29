@@ -1,7 +1,6 @@
 import state from "../state.js";
 import { getTileTypeLabel } from "../tiles/types.js";
 import { placeTileAt } from "../tiles/autotile.js";
-import { getActiveLayerTiles } from "../tiles/layers.js";
 
 const SIGN_TEXT = {
   17: {

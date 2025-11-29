@@ -4,7 +4,6 @@ import { updateBackgroundTiles } from "../tiles/background.js";
 import {
   updateSaveButtonVisibility,
   showLandingPage,
-  hideLandingPage,
   isMapEmpty,
   showLandingPageLoading,
   hideLandingPageLoading
