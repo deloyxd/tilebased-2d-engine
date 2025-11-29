@@ -31,6 +31,8 @@ import {
 
 let previousTimestamp = 0;
 
+const MAX_FRAME_TIME = 0.1;
+
 export function startEngine() {
   initDomReferences();
   registerUIEvents();
@@ -46,15 +48,33 @@ export function startEngine() {
 }
 
 function gameLoop(timestamp = performance.now()) {
-  const deltaSeconds = previousTimestamp
-    ? (timestamp - previousTimestamp) / 1000
-    : 0;
+  if (!previousTimestamp) {
+    previousTimestamp = timestamp;
+  }
+
+  let deltaSeconds = (timestamp - previousTimestamp) / 1000;
+
+  if (deltaSeconds > 1) {
+    previousTimestamp = timestamp;
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+
+  deltaSeconds = Math.min(Math.max(deltaSeconds, 0), MAX_FRAME_TIME);
   previousTimestamp = timestamp;
+
+  const isDocumentHidden =
+    typeof document !== "undefined" && document.hidden === true;
+  const hasWindowFocus =
+    typeof document !== "undefined" && typeof document.hasFocus === "function"
+      ? document.hasFocus()
+      : true;
+
   clearScreen();
   calculateFPS(timestamp);
   if (!state.startGame) {
     displayLoading();
-  } else {
+  } else if (!isDocumentHidden && hasWindowFocus) {
     updatePlayer(deltaSeconds);
     updateCamera(deltaSeconds);
     displayGame();
@@ -72,6 +92,9 @@ function gameLoop(timestamp = performance.now()) {
       }
       displayMoveSelection();
     }
+    displayInfo();
+  } else {
+    displayGame();
     displayInfo();
   }
   requestAnimationFrame(gameLoop);

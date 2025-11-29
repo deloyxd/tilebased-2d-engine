@@ -34,7 +34,6 @@ function renderGameText(container, text) {
     if (!buffer) return;
 
     if (!mode) {
-      // Plain text: preserve new lines.
       const parts = buffer.split("\n");
       parts.forEach((part, index) => {
         if (part) {
@@ -146,13 +145,11 @@ function handleKeyDown(event) {
     const interaction = state.gameplay.interaction;
     if (!interaction) return;
 
-    // If a text modal is already open, close it on E press.
     if (interaction.isTextModalOpen) {
       hideGameTextModal();
       return;
     }
 
-    // Otherwise, only open the modal if the player is standing on the active sign tile.
     if (!interaction.activeSign) return;
 
     const tileSize = state.tiles.size || 1;
