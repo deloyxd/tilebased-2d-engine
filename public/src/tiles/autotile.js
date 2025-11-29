@@ -24,7 +24,7 @@ const baseGroundVariants = {
   12: 22, // SW
   13: 117, // NSW
   14: 21, // ESW
-  15: 116, // full
+  15: 116 // full
 };
 
 const autotileGroups = {
@@ -45,7 +45,7 @@ const autotileGroups = {
     12: 26, // SW
     13: 45, // NSW
     14: 25, // ESW
-    15: 44, // full
+    15: 44 // full
   },
   // Ground tiles autotile group (grass surface)
   groundGrass: baseGroundVariants,
@@ -57,7 +57,7 @@ const autotileGroups = {
     8: 41, // W
     10: 40, // EW
     12: 60, // SW
-    14: 59, // ESW
+    14: 59 // ESW
   }),
   groundSnow: createAutotileGroup(baseGroundVariants, {
     0: 76, // isolated tile
@@ -67,8 +67,8 @@ const autotileGroups = {
     8: 79, // W
     10: 78, // EW
     12: 98, // SW
-    14: 97, // ESW
-  }),
+    14: 97 // ESW
+  })
 };
 
 // Create Sets of all autotile variant indices for each group for quick lookup
@@ -127,7 +127,7 @@ export function placeTileAt(mapIdx, tileIdx) {
     [x, y - 1],
     [x + 1, y],
     [x, y + 1],
-    [x - 1, y],
+    [x - 1, y]
   ];
 
   neighbors.forEach(([nx, ny]) => {

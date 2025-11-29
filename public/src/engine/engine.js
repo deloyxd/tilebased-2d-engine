@@ -2,12 +2,12 @@ import state from "../state.js";
 import { initDomReferences } from "../ui/dom.js";
 import {
   registerUIEvents,
-  updateSaveButtonVisibility,
+  updateSaveButtonVisibility
 } from "../events/uiEvents.js";
 import {
   registerInputEvents,
   selectBrush,
-  updatePaletteHeader,
+  updatePaletteHeader
 } from "../events/inputEvents.js";
 import { loadImages } from "../assets/images.js";
 import { loadMap, saveMap } from "../map/storage.js";
@@ -18,15 +18,16 @@ import {
   displayTileSelections,
   displayMoveSelection,
   movePaletteWindow,
-  resizePaletteWindow,
+  resizePaletteWindow
 } from "../palette/palette.js";
 import { resizeLayers } from "../tiles/layers.js";
+import { updateBackgroundTiles } from "../tiles/background.js";
 import { registerPlayerControls } from "../events/playerControls.js";
 import {
   initPlayer,
   updatePlayer,
   togglePlayMode,
-  updateCamera,
+  updateCamera
 } from "../gameplay/player.js";
 
 let previousTimestamp = 0;
@@ -139,7 +140,7 @@ function clearScreen() {
       0,
       0,
       state.palette.canvas.width,
-      state.palette.canvas.height,
+      state.palette.canvas.height
     );
     state.palette.context.imageSmoothingEnabled = false;
   } else {
@@ -173,70 +174,23 @@ function refreshEngine() {
     startX: tileset.empty.type === "null" ? -1 : tileset.empty.tile[0].x,
     startY: tileset.empty.type === "null" ? -1 : tileset.empty.tile[0].y,
     width: 1,
-    height: 1,
+    height: 1
   };
   loadMap().catch(console.error);
   updateSaveButtonVisibility();
-  const tilesetBG = tileset.bg || { type: "normal" };
-  state.tiles.bg = [];
-  const canvasMaxColumn = Math.ceil(state.canvas.width / state.tiles.size);
-  const canvasMaxRow = Math.ceil(state.canvas.height / state.tiles.size);
-  switch (tilesetBG.type) {
-    case "group": {
-      const groupWidth = tilesetBG.tile[0].w;
-      const groupHeight = tilesetBG.tile[0].h;
-      for (let y = 0; y < canvasMaxRow; y += groupHeight) {
-        for (let x = 0; x < canvasMaxColumn; x += groupWidth) {
-          for (let h = 0; h < groupHeight; h++) {
-            for (let w = 0; w < groupWidth; w++) {
-              const tileX = x + w;
-              const tileY = y + h;
-              if (tileX >= canvasMaxColumn || tileY >= canvasMaxRow) continue;
-              const srcX = (tilesetBG.tile[0].x + w) * tilesetSize;
-              const srcY = (tilesetBG.tile[0].y + h) * tilesetSize;
-              state.tiles.bg.push({
-                srcX,
-                srcY,
-                desX: tileX * state.tiles.size,
-                desY: tileY * state.tiles.size,
-              });
-            }
-          }
-        }
-      }
-      break;
-    }
-    case "source": {
-      for (let y = 0; y < canvasMaxRow; y++) {
-        for (let x = 0; x < canvasMaxColumn; x++) {
-          state.tiles.bg.push({
-            desX: x * state.tiles.size,
-            desY: y * state.tiles.size,
-          });
-        }
-      }
-      const bgImage = new Image();
-      bgImage.src = `./images/${tileset.bg.name}.${tileset.bg.extension}`;
-      bgImage.onload = () => {
-        state.loadedImages["tileset"].bg.image = bgImage;
-      };
-      break;
-    }
-    default:
-      break;
-  }
+  updateBackgroundTiles();
   state.palette.root.style.display = state.editing.isEditing ? "flex" : "none";
   if (state.editing.isEditing) {
     resizePaletteWindow(
       tileset.image.width * 2,
-      tileset.image.height * 2 + state.palette.header.clientHeight,
+      tileset.image.height * 2 + state.palette.header.clientHeight
     );
     movePaletteWindow(
       state.canvas.width -
         state.palette.root.clientWidth -
         state.palette.borderWidth -
         15,
-      state.palette.header.clientHeight + 15 + 20,
+      state.palette.header.clientHeight + 15 + 20
     );
   }
 }

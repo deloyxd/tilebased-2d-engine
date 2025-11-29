@@ -71,7 +71,7 @@ export function displayPalette() {
     -scrollX,
     -scrollY,
     scaledTilesetWidth,
-    scaledTilesetHeight,
+    scaledTilesetHeight
   );
 }
 
@@ -108,7 +108,7 @@ export function displayMoveSelection() {
       startX * tiles.size,
       startY * tiles.size,
       (endX - startX + 1) * tiles.size,
-      (endY - startY + 1) * tiles.size,
+      (endY - startY + 1) * tiles.size
     );
     state.ctx.strokeStyle = "yellow";
     state.ctx.lineWidth = 2;
@@ -118,7 +118,7 @@ export function displayMoveSelection() {
       startX * tiles.size,
       startY * tiles.size,
       (endX - startX + 1) * tiles.size,
-      (endY - startY + 1) * tiles.size,
+      (endY - startY + 1) * tiles.size
     );
     state.ctx.restore();
   }
@@ -143,7 +143,7 @@ export function displayMoveSelection() {
             (previewX + w) * tiles.size,
             (previewY + h) * tiles.size,
             tiles.size,
-            tiles.size,
+            tiles.size
           );
         }
         dataIndex++;
@@ -159,7 +159,7 @@ export function displayMoveSelection() {
       previewX * tiles.size,
       previewY * tiles.size,
       editing.moveSelectedTiles.width * tiles.size,
-      editing.moveSelectedTiles.height * tiles.size,
+      editing.moveSelectedTiles.height * tiles.size
     );
     state.ctx.restore();
   }
@@ -218,7 +218,7 @@ export function displayTileSelections() {
       hoverX,
       hoverY,
       paletteTileSize,
-      paletteTileSize,
+      paletteTileSize
     );
     state.palette.context.restore();
   }
@@ -246,7 +246,7 @@ export function displayTileSelections() {
         selectX,
         selectY,
         selectWidth,
-        selectHeight,
+        selectHeight
       );
       state.palette.context.restore();
     }
@@ -277,7 +277,7 @@ export function displayTileSelections() {
               (Math.floor(state.pointer.y / tiles.size) - offsetY + h) *
                 tiles.size,
               tiles.size,
-              tiles.size,
+              tiles.size
             );
           }
         }
@@ -292,7 +292,7 @@ export function displayTileSelections() {
         (Math.floor(state.pointer.x / tiles.size) - offsetX) * tiles.size,
         (Math.floor(state.pointer.y / tiles.size) - offsetY) * tiles.size,
         tiles.size * brushWidth,
-        tiles.size * brushHeight,
+        tiles.size * brushHeight
       );
       state.ctx.restore();
 
@@ -367,7 +367,7 @@ function getBrushDimensions(editing) {
     baseWidth,
     baseHeight,
     brushWidth: baseWidth * brushSize,
-    brushHeight: baseHeight * brushSize,
+    brushHeight: baseHeight * brushSize
   };
 }
 
@@ -394,7 +394,7 @@ export function snapPaletteScrollToEdge(edge = "") {
 
 function clampPaletteScroll({
   horizontalSnap = null,
-  verticalSnap = null,
+  verticalSnap = null
 } = {}) {
   const { maxScrollX, maxScrollY } = getPaletteScrollBoundsPx();
   const editing = state.editing;
@@ -421,7 +421,7 @@ function getPaletteScrollBoundsPx() {
   const viewportHeight = state.palette.canvas.height;
   return {
     maxScrollX: Math.max(0, scaledTilesetWidth - viewportWidth),
-    maxScrollY: Math.max(0, scaledTilesetHeight - viewportHeight),
+    maxScrollY: Math.max(0, scaledTilesetHeight - viewportHeight)
   };
 }
 

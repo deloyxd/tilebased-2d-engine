@@ -6,7 +6,7 @@ function setAuthCookie(res, token) {
     httpOnly: true,
     sameSite: "lax",
     secure: isProduction,
-    maxAge: 1000 * 60 * 60 * 24, // 1 day
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
   });
 }
 
@@ -31,7 +31,7 @@ exports.logout = (req, res) => {
   res.clearCookie(cookieName, {
     httpOnly: true,
     sameSite: "lax",
-    secure: isProduction,
+    secure: isProduction
   });
   return res.json({ message: "Logged out." });
 };

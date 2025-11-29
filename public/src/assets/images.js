@@ -7,15 +7,15 @@ export function loadImages(callback) {
       extension: "png",
       size: 18,
       empty: {
-        type: "null",
+        type: "null"
       },
       paint: {
         tile: [
           {
             x: 2,
-            y: 6,
-          },
-        ],
+            y: 6
+          }
+        ]
       },
       bg: {
         name: "bg",
@@ -25,10 +25,10 @@ export function loadImages(callback) {
         tile: [
           {
             x: 6,
-            y: 0,
-          },
-        ],
-      },
+            y: 0
+          }
+        ]
+      }
     },
     {
       name: "characters",
@@ -41,14 +41,14 @@ export function loadImages(callback) {
             {
               animation: "idle",
               x: 0,
-              y: 0,
+              y: 0
             },
             {
               animation: "move",
               x: 1,
-              y: 0,
-            },
-          ],
+              y: 0
+            }
+          ]
         },
         {
           index: 1,
@@ -56,14 +56,14 @@ export function loadImages(callback) {
             {
               animation: "idle",
               x: 2,
-              y: 0,
+              y: 0
             },
             {
               animation: "move",
               x: 3,
-              y: 0,
-            },
-          ],
+              y: 0
+            }
+          ]
         },
         {
           index: 2,
@@ -71,14 +71,14 @@ export function loadImages(callback) {
             {
               animation: "idle",
               x: 4,
-              y: 0,
+              y: 0
             },
             {
               animation: "move",
               x: 5,
-              y: 0,
-            },
-          ],
+              y: 0
+            }
+          ]
         },
         {
           index: 3,
@@ -86,14 +86,14 @@ export function loadImages(callback) {
             {
               animation: "idle",
               x: 6,
-              y: 0,
+              y: 0
             },
             {
               animation: "move",
               x: 7,
-              y: 0,
-            },
-          ],
+              y: 0
+            }
+          ]
         },
         {
           index: 4,
@@ -101,17 +101,17 @@ export function loadImages(callback) {
             {
               animation: "idle",
               x: 0,
-              y: 1,
+              y: 1
             },
             {
               animation: "move",
               x: 1,
-              y: 1,
-            },
-          ],
-        },
-      ],
-    },
+              y: 1
+            }
+          ]
+        }
+      ]
+    }
   ];
   let loaded = 0;
   const maxLoad = images.length;

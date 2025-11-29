@@ -2,9 +2,26 @@ import state from "../state.js";
 
 const SIGN_TEXT = {
   17: {
-    19: "Welcome to <fun>Island Venture</fun>! It seems you know how to move around and interact with objects already! Your goal? Simple. You just have to escape this island <bloody>ALIVE</bloody>. Goodluck!",
-  },
+    19: "Welcome to <fun>Island Venture</fun>! It seems you know how to move around and interact with objects already! Your goal? Simple. You just have to escape this island <bloody>ALIVE</bloody>. Goodluck!"
+  }
 };
+
+function customOnTouch(tileData) {
+  if (!state.gameplay.interaction) {
+    state.gameplay.interaction = {
+      activeSign: null,
+      isTextModalOpen: false
+    };
+  }
+
+  const text = SIGN_TEXT[tileData.col]?.[tileData.row] || "...";
+
+  state.gameplay.interaction.activeSign = {
+    col: tileData.col,
+    row: tileData.row,
+    text
+  };
+}
 
 function getAllTilesFromMap() {
   const allTiles = [];
@@ -32,7 +49,7 @@ function getAllTilesFromMap() {
         allTiles.push({
           col,
           row,
-          tileIndex,
+          tileIndex
         });
       }
     }
@@ -47,27 +64,10 @@ export default {
     {
       col: 17,
       row: 19,
-      onTouch: (tileData) => {
-        if (!state.gameplay.interaction) {
-          state.gameplay.interaction = {
-            activeSign: null,
-            isTextModalOpen: false,
-          };
-        }
-
-        const text =
-          SIGN_TEXT[tileData.col]?.[tileData.row] ||
-          "The sign doesn't have any text yet.";
-
-        state.gameplay.interaction.activeSign = {
-          col: tileData.col,
-          row: tileData.row,
-          text,
-        };
-      },
-    },
+      onTouch: (tileData) => customOnTouch(tileData)
+    }
   ],
   onTileTouch: (tileData) => {
     console.log("Level 1: Global tile touch handler", tileData);
-  },
+  }
 };

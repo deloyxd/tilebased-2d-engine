@@ -10,7 +10,7 @@ const config = {
   adminPassword: process.env.ADMIN_PASSWORD || "",
   tokenSecret: process.env.AUTH_TOKEN_SECRET || "",
   tokenExpiresIn: process.env.AUTH_TOKEN_EXPIRES_IN || "2h",
-  cookieName: process.env.AUTH_COOKIE_NAME || "islandventure_auth",
+  cookieName: process.env.AUTH_COOKIE_NAME || "islandventure_auth"
 };
 
 config.isProduction = config.nodeEnv === "production";

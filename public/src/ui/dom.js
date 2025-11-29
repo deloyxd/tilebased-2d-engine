@@ -10,7 +10,7 @@ export function initDomReferences() {
   state.palette.context = state.palette.canvas.getContext("2d");
   state.palette.borderWidth = parseInt(
     getComputedStyle(state.palette.root).borderWidth,
-    10,
+    10
   );
 
   state.dom.testBtn = document.getElementById("testBtn");
@@ -27,7 +27,7 @@ export function initDomReferences() {
   state.dom.levelModalContent = document.getElementById("levelModalContent");
   state.dom.gameTextModal = document.getElementById("gameTextModal");
   state.dom.gameTextModalContent = document.getElementById(
-    "gameTextModalContent",
+    "gameTextModalContent"
   );
   state.dom.createNewMapBtn = document.getElementById("createNewMapBtn");
   state.dom.revertBtn = document.getElementById("revertBtn");

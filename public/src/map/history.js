@@ -3,8 +3,9 @@ import { saveMap } from "./storage.js";
 import {
   cloneLayers,
   getActiveLayerTiles,
-  setActiveLayerIndex,
+  setActiveLayerIndex
 } from "../tiles/layers.js";
+import { updateBackgroundTiles } from "../tiles/background.js";
 
 export function resetHistory() {
   state.history.undoStack = [];
@@ -17,7 +18,7 @@ export function saveStateToUndo() {
     map: [...getActiveLayerTiles()],
     mapMaxColumn: state.mapMaxColumn,
     mapMaxRow: state.mapMaxRow,
-    activeLayerIndex: state.editing.activeLayerIndex,
+    activeLayerIndex: state.editing.activeLayerIndex
   };
 
   state.history.undoStack.push(snapshot);
@@ -37,7 +38,7 @@ export function undo() {
     map: [...getActiveLayerTiles()],
     mapMaxColumn: state.mapMaxColumn,
     mapMaxRow: state.mapMaxRow,
-    activeLayerIndex: state.editing.activeLayerIndex,
+    activeLayerIndex: state.editing.activeLayerIndex
   };
   state.history.redoStack.push(currentState);
 
@@ -50,8 +51,8 @@ export function undo() {
         id: "undo-legacy-layer",
         name: "Layer 1",
         visible: true,
-        tiles: previousState.map.slice(),
-      },
+        tiles: previousState.map.slice()
+      }
     ];
   } else {
     state.tiles.layers = [];
@@ -59,6 +60,7 @@ export function undo() {
   state.mapMaxColumn = previousState.mapMaxColumn;
   state.mapMaxRow = previousState.mapMaxRow;
   setActiveLayerIndex(previousState.activeLayerIndex ?? 0);
+  updateBackgroundTiles();
 
   saveMap();
 }
@@ -71,7 +73,7 @@ export function redo() {
     map: [...getActiveLayerTiles()],
     mapMaxColumn: state.mapMaxColumn,
     mapMaxRow: state.mapMaxRow,
-    activeLayerIndex: state.editing.activeLayerIndex,
+    activeLayerIndex: state.editing.activeLayerIndex
   };
   state.history.undoStack.push(currentState);
 
@@ -84,8 +86,8 @@ export function redo() {
         id: "redo-legacy-layer",
         name: "Layer 1",
         visible: true,
-        tiles: nextState.map.slice(),
-      },
+        tiles: nextState.map.slice()
+      }
     ];
   } else {
     state.tiles.layers = [];
@@ -93,6 +95,7 @@ export function redo() {
   state.mapMaxColumn = nextState.mapMaxColumn;
   state.mapMaxRow = nextState.mapMaxRow;
   setActiveLayerIndex(nextState.activeLayerIndex ?? 0);
+  updateBackgroundTiles();
 
   saveMap();
 }

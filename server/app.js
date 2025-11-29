@@ -10,7 +10,7 @@ const app = express();
 
 const CLIENT_ORIGIN = [
   "http://localhost:5500",
-  "https://islandventure.web.app",
+  "https://islandventure.web.app"
 ];
 
 app.disable("x-powered-by");
@@ -22,7 +22,7 @@ app.use((req, res, next) => {
   }
   res.setHeader(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
+    "GET, POST, PUT, DELETE, OPTIONS"
   );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -36,8 +36,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   morgan(config.isProduction ? "combined" : "dev", {
-    skip: () => config.nodeEnv === "test",
-  }),
+    skip: () => config.nodeEnv === "test"
+  })
 );
 
 app.get("/", (req, res) => {

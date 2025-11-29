@@ -2,7 +2,7 @@ import state from "../state.js";
 import { getTileTypeLabel } from "../tiles/types.js";
 import {
   checkTileInteractions,
-  getPlayerTilePositionPublic,
+  getPlayerTilePositionPublic
 } from "./levels.js";
 
 const PLAYER_CONSTANTS = {
@@ -19,7 +19,7 @@ const PLAYER_CONSTANTS = {
   swimJumpForce: -200,
   frameDuration: 0.14,
   collisionPadding: 6,
-  spawnOffsetX: 8,
+  spawnOffsetX: 8
 };
 
 function isMapEmpty() {
@@ -172,7 +172,7 @@ export function updatePlayer(deltaSeconds = 0) {
   const mapWidth = state.mapMaxColumn * tileSize;
   player.position.x = Math.max(
     0,
-    Math.min(player.position.x, mapWidth - player.width),
+    Math.min(player.position.x, mapWidth - player.width)
   );
 
   if (player.isClimbing) {
@@ -185,7 +185,7 @@ export function updatePlayer(deltaSeconds = 0) {
     player.velocity.y += PLAYER_CONSTANTS.swimGravity * dt;
     player.velocity.y = Math.min(
       player.velocity.y,
-      PLAYER_CONSTANTS.swimMaxFallSpeed,
+      PLAYER_CONSTANTS.swimMaxFallSpeed
     );
 
     if (input.jump) {
@@ -196,7 +196,7 @@ export function updatePlayer(deltaSeconds = 0) {
     player.velocity.y += PLAYER_CONSTANTS.gravity * dt;
     player.velocity.y = Math.min(
       player.velocity.y,
-      PLAYER_CONSTANTS.maxFallSpeed,
+      PLAYER_CONSTANTS.maxFallSpeed
     );
 
     if (input.jump && player.onGround) {
@@ -275,7 +275,7 @@ export function drawPlayer() {
     drawX,
     player.position.y - 5,
     player.width,
-    player.height,
+    player.height
   );
   state.ctx.restore();
   drawInteractionPrompt();
@@ -290,9 +290,9 @@ export function resetPlayerState() {
   state.player.position.x = Math.max(
     Math.min(
       spawnPosition?.x ?? fallbackX,
-      (state.canvas?.width || window.innerWidth) - state.player.width,
+      (state.canvas?.width || window.innerWidth) - state.player.width
     ),
-    0,
+    0
   );
   state.player.position.y = Math.max(spawnPosition?.y ?? fallbackY, 0);
   state.player.velocity.x = 0;
@@ -318,10 +318,9 @@ export function resetPlayerState() {
   }
 }
 
-export function updateCamera(deltaSeconds = 0) {
+export function updateCamera(_deltaSeconds = 0) {
   if (!state.gameplay.isPlaying || !state.canvas) return;
 
-  const dt = Math.max(deltaSeconds, 0);
   const player = state.player;
   const canvas = state.canvas;
   const tileSize = state.tiles.size || 1;
@@ -356,11 +355,9 @@ export function updateCamera(deltaSeconds = 0) {
     scaledCanvasHeight / 2 +
     mouseOffsetY * scaledCanvasHeight * 0.2;
 
-  const cameraLerpSpeed = 8.0;
-  const lerpFactor = 1 - Math.exp(-cameraLerpSpeed * dt);
-
-  state.camera.x += (targetCameraX - state.camera.x) * lerpFactor;
-  state.camera.y += (targetCameraY - state.camera.y) * lerpFactor;
+  const cameraSmoothingFactor = 50;
+  state.camera.x += (targetCameraX - state.camera.x) / cameraSmoothingFactor;
+  state.camera.y += (targetCameraY - state.camera.y) / cameraSmoothingFactor;
 
   const minCameraX = 0;
   const maxCameraX = Math.max(0, mapWidth - scaledCanvasWidth);
@@ -386,11 +383,11 @@ function resolveHorizontalCollisions(nextX, tileSize) {
   const padding = PLAYER_CONSTANTS.collisionPadding;
   const collisionOffsetY = (player.height - player.collisionHeight) / 2;
   const topRow = Math.floor(
-    (player.position.y + collisionOffsetY + padding) / tileSize,
+    (player.position.y + collisionOffsetY + padding) / tileSize
   );
   const bottomRow = Math.floor(
     (player.position.y + collisionOffsetY + player.collisionHeight - padding) /
-      tileSize,
+      tileSize
   );
 
   if (
@@ -431,11 +428,11 @@ function resolveVerticalCollisions(nextY, tileSize) {
   const nextCollisionY = nextY + collisionOffsetY;
   const padding = PLAYER_CONSTANTS.collisionPadding;
   const leftCol = Math.floor(
-    (player.position.x + collisionOffsetX + padding) / tileSize,
+    (player.position.x + collisionOffsetX + padding) / tileSize
   );
   const rightCol = Math.floor(
     (player.position.x + collisionOffsetX + player.collisionWidth - padding) /
-      tileSize,
+      tileSize
   );
 
   if (falling) {
@@ -544,7 +541,7 @@ function getFramesForAnimation(spriteSheet) {
   const descriptor = players[state.player.characterIndex] ||
     players[0] || { frames: [] };
   const filtered = descriptor.frames.filter(
-    (frame) => frame.animation === state.player.animation,
+    (frame) => frame.animation === state.player.animation
   );
   return filtered.length ? filtered : descriptor.frames || [];
 }
@@ -609,31 +606,30 @@ function detectClimbSurface(tileSize) {
   const collisionOffsetY = (player.height - player.collisionHeight) / 2;
   const leftCol = Math.max(
     0,
-    Math.floor((player.position.x + collisionOffsetX) / tileSize),
+    Math.floor((player.position.x + collisionOffsetX) / tileSize)
   );
   const rightCol = Math.min(
     state.mapMaxColumn - 1,
     Math.floor(
-      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize,
-    ),
+      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize
+    )
   );
   const topRow = Math.max(
     0,
-    Math.floor((player.position.y + collisionOffsetY) / tileSize),
+    Math.floor((player.position.y + collisionOffsetY) / tileSize)
   );
   const bottomRow = Math.min(
     state.mapMaxRow - 1,
     Math.floor(
-      (player.position.y + collisionOffsetY + player.collisionHeight) /
-        tileSize,
-    ),
+      (player.position.y + collisionOffsetY + player.collisionHeight) / tileSize
+    )
   );
 
   const playerCollisionRect = {
     x: player.position.x + collisionOffsetX,
     y: player.position.y + collisionOffsetY,
     width: player.collisionWidth,
-    height: player.collisionHeight,
+    height: player.collisionHeight
   };
 
   for (let row = topRow; row <= bottomRow; row++) {
@@ -650,7 +646,7 @@ function detectClimbSurface(tileSize) {
             : "vertical";
         const narrowWidth = Math.max(
           4,
-          tileSize * PLAYER_CONSTANTS.climbColliderWidthRatio,
+          tileSize * PLAYER_CONSTANTS.climbColliderWidthRatio
         );
         const tileX = col * tileSize + (tileSize - narrowWidth) / 2;
         const tileY = row * tileSize;
@@ -660,12 +656,12 @@ function detectClimbSurface(tileSize) {
           width: narrowWidth,
           height: tileSize,
           col,
-          row,
+          row
         };
         if (rectsOverlap(playerCollisionRect, tileRect)) {
           return {
             orientation,
-            tile: tileRect,
+            tile: tileRect
           };
         }
       }
@@ -726,24 +722,23 @@ function detectWater(tileSize) {
   const collisionOffsetY = (player.height - player.collisionHeight) / 2;
   const leftCol = Math.max(
     0,
-    Math.floor((player.position.x + collisionOffsetX) / tileSize),
+    Math.floor((player.position.x + collisionOffsetX) / tileSize)
   );
   const rightCol = Math.min(
     state.mapMaxColumn - 1,
     Math.floor(
-      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize,
-    ),
+      (player.position.x + collisionOffsetX + player.collisionWidth) / tileSize
+    )
   );
   const topRow = Math.max(
     0,
-    Math.floor((player.position.y + collisionOffsetY) / tileSize),
+    Math.floor((player.position.y + collisionOffsetY) / tileSize)
   );
   const bottomRow = Math.min(
     state.mapMaxRow - 1,
     Math.floor(
-      (player.position.y + collisionOffsetY + player.collisionHeight) /
-        tileSize,
-    ),
+      (player.position.y + collisionOffsetY + player.collisionHeight) / tileSize
+    )
   );
 
   for (let row = topRow; row <= bottomRow; row++) {

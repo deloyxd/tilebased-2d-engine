@@ -13,7 +13,7 @@ const state = {
     bg: [],
     empty: [-1],
     map: [],
-    layers: [],
+    layers: []
   },
   mapMaxRow: 0,
   mapMaxColumn: 0,
@@ -25,7 +25,7 @@ const state = {
     canvas: null,
     context: null,
     borderWidth: 0,
-    rect: null,
+    rect: null
   },
   editing: {
     isEditing: true,
@@ -42,7 +42,7 @@ const state = {
     replaceState: {
       state: 0,
       states: ["not", "replacing", "replaced"],
-      tileIndex: 0,
+      tileIndex: 0
     },
     resizingEdge: null,
     paletteScrollX: 0,
@@ -64,7 +64,7 @@ const state = {
     activeLayerIndex: 0,
     moveSelectedLayerIndex: null,
     isOpacityEnabled: true,
-    isAutotilingEnabled: true,
+    isAutotilingEnabled: true
   },
   constants: {
     PALETTE_TILE_SIZE_SCALE: 2,
@@ -73,15 +73,15 @@ const state = {
     BRUSH_MIN_SIZE: 1,
     BRUSH_MAX_SIZE: 8,
     MAX_UNDO_STEPS: 100000,
-    DEFAULT_LAYER_COUNT: 5,
+    DEFAULT_LAYER_COUNT: 5
   },
   history: {
     undoStack: [],
-    redoStack: [],
+    redoStack: []
   },
   pointer: {
     x: 0,
-    y: 0,
+    y: 0
   },
   dom: {
     importBtn: null,
@@ -104,15 +104,15 @@ const state = {
     landingPageContent: null,
     playGameBtn: null,
     editLevelsBtn: null,
-    exitMapBtn: null,
+    exitMapBtn: null
   },
   landingPage: {
-    isVisible: true,
+    isVisible: true
   },
   lastLoadedLevel: {
     id: null,
     author: null,
-    mode: null,
+    mode: null
   },
   originalMapData: null,
   gameplay: {
@@ -122,17 +122,17 @@ const state = {
       right: false,
       up: false,
       down: false,
-      jump: false,
+      jump: false
     },
     playMode: {
       isActive: false,
       levels: [],
-      currentLevelIndex: -1,
+      currentLevelIndex: -1
     },
     interaction: {
       activeSign: null,
-      isTextModalOpen: false,
-    },
+      isTextModalOpen: false
+    }
   },
   player: {
     width: 24,
@@ -150,13 +150,13 @@ const state = {
     isClimbing: false,
     climbAxis: null,
     climbTile: null,
-    isSwimming: false,
+    isSwimming: false
   },
   camera: {
     x: 0,
     y: 0,
-    zoom: 2.0,
-  },
+    zoom: 2.0
+  }
 };
 
 export default state;

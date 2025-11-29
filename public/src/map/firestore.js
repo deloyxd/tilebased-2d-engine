@@ -10,7 +10,7 @@ import {
   Timestamp,
   doc,
   updateDoc,
-  deleteDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import state from "../state.js";
 
@@ -19,7 +19,7 @@ const AUTHORS = [
   "Jestley Charles R. Estipona",
   "Jun Gin Xenon M. De Jose",
   "Kyan Ray I. Villarin",
-  "Jimmy H. Quiton",
+  "Jimmy H. Quiton"
 ];
 
 let db = null;
@@ -34,7 +34,7 @@ export function initFirestore() {
     projectId: "islandventure-ae04d",
     storageBucket: "islandventure-ae04d.firebasestorage.app",
     messagingSenderId: "580526749644",
-    appId: "1:580526749644:web:0feecc813de1af11cc4f69",
+    appId: "1:580526749644:web:0feecc813de1af11cc4f69"
   };
 
   try {
@@ -44,7 +44,7 @@ export function initFirestore() {
   } catch (error) {
     console.error("Firebase initialization error:", error);
     alert(
-      "Firebase not configured. Please update firebaseConfig in src/map/firestore.js",
+      "Firebase not configured. Please update firebaseConfig in src/map/firestore.js"
     );
   }
 }
@@ -68,7 +68,7 @@ export async function saveLevelToFirestore(author) {
     layers: state.tiles.layers,
     activeLayerIndex: state.editing.activeLayerIndex,
     tiles:
-      state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || [],
+      state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || []
   };
 
   try {
@@ -79,7 +79,7 @@ export async function saveLevelToFirestore(author) {
       isBeingEdited: true,
       isBeingPlayed: false,
       createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
     });
     return docRef.id;
   } catch (error) {
@@ -105,7 +105,7 @@ export async function getAllLevels() {
     querySnapshot.forEach((doc) => {
       levels.push({
         id: doc.id,
-        ...doc.data(),
+        ...doc.data()
       });
     });
     return levels;
@@ -131,7 +131,7 @@ export async function updateLevelToFirestore(levelId) {
     layers: state.tiles.layers,
     activeLayerIndex: state.editing.activeLayerIndex,
     tiles:
-      state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || [],
+      state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || []
   };
 
   try {
@@ -139,7 +139,7 @@ export async function updateLevelToFirestore(levelId) {
     await updateDoc(docRef, {
       mapData: mapData,
       isBeingEdited: true,
-      updatedAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
     });
     return true;
   } catch (error) {
@@ -184,7 +184,7 @@ export async function getLevelById(levelId) {
     if (docSnap.exists()) {
       return {
         id: docSnap.id,
-        ...docSnap.data(),
+        ...docSnap.data()
       };
     } else {
       return null;
@@ -208,7 +208,7 @@ export async function setLevelBeingEdited(levelId) {
   try {
     const docRef = doc(db, "levels", levelId);
     await updateDoc(docRef, {
-      isBeingEdited: true,
+      isBeingEdited: true
     });
     return true;
   } catch (error) {
@@ -229,7 +229,7 @@ export async function setLevelNotBeingEdited(levelId) {
   try {
     const docRef = doc(db, "levels", levelId);
     await updateDoc(docRef, {
-      isBeingEdited: false,
+      isBeingEdited: false
     });
     return true;
   } catch (error) {
@@ -250,7 +250,7 @@ export async function setLevelBeingPlayed(levelId) {
   try {
     const docRef = doc(db, "levels", levelId);
     await updateDoc(docRef, {
-      isBeingPlayed: true,
+      isBeingPlayed: true
     });
     return true;
   } catch (error) {
@@ -271,7 +271,7 @@ export async function setLevelNotBeingPlayed(levelId) {
   try {
     const docRef = doc(db, "levels", levelId);
     await updateDoc(docRef, {
-      isBeingPlayed: false,
+      isBeingPlayed: false
     });
     return true;
   } catch (error) {

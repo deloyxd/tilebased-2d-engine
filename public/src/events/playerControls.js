@@ -10,7 +10,7 @@ const KEY_MAP = {
   KeyW: ["up", "jump"],
   ArrowDown: ["down"],
   KeyS: ["down"],
-  Space: ["jump"],
+  Space: ["jump"]
 };
 
 export function registerPlayerControls() {
@@ -23,7 +23,7 @@ function renderGameText(container, text) {
 
   const TAGS = {
     fun: { open: "<fun>", close: "</fun>" },
-    bloody: { open: "<bloody>", close: "</bloody>" },
+    bloody: { open: "<bloody>", close: "</bloody>" }
   };
 
   let i = 0;
@@ -120,7 +120,7 @@ function showGameTextModal(text) {
   if (!state.gameplay.interaction) {
     state.gameplay.interaction = {
       activeSign: null,
-      isTextModalOpen: false,
+      isTextModalOpen: false
     };
   }
   state.gameplay.interaction.isTextModalOpen = true;

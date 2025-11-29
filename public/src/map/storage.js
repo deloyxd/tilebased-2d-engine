@@ -1,19 +1,20 @@
 import state from "../state.js";
 import { initializeLayersFromData } from "../tiles/layers.js";
+import { updateBackgroundTiles } from "../tiles/background.js";
 import {
   updateSaveButtonVisibility,
   showLandingPage,
   hideLandingPage,
   isMapEmpty,
   showLandingPageLoading,
-  hideLandingPageLoading,
+  hideLandingPageLoading
 } from "../events/uiEvents.js";
 import { saveStateToUndo } from "./history.js";
 import {
   initFirestore,
   getLevelById,
   setLevelBeingEdited,
-  setLevelNotBeingPlayed,
+  setLevelNotBeingPlayed
 } from "./firestore.js";
 import { importMapFromData } from "./io.js";
 
@@ -84,14 +85,15 @@ export async function loadMap() {
           id: "legacy-layer",
           name: "Layer 1",
           visible: true,
-          tiles: data.tiles,
-        },
+          tiles: data.tiles
+        }
       ]
     : [];
   initializeLayersFromData(
     data.layers && data.layers.length ? data.layers : legacyLayer,
-    data.activeLayerIndex ?? 0,
+    data.activeLayerIndex ?? 0
   );
+  updateBackgroundTiles();
 
   if (isMapEmpty()) {
     showLandingPage();
@@ -128,8 +130,8 @@ export function saveLastLoadedLevel() {
       JSON.stringify({
         id: state.lastLoadedLevel.id,
         author: state.lastLoadedLevel.author,
-        mode: mode,
-      }),
+        mode: mode
+      })
     );
   } else {
     localStorage.removeItem("lastLoadedLevel");
@@ -143,7 +145,7 @@ export function getCurrentMapData() {
     layers: JSON.parse(JSON.stringify(state.tiles.layers)),
     activeLayerIndex: state.editing.activeLayerIndex,
     tiles:
-      state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || [],
+      state.tiles.layers[state.editing.activeLayerIndex]?.tiles.slice() || []
   };
 }
 
@@ -159,6 +161,7 @@ export function resetMap() {
   state.mapMaxColumn = Math.ceil(window.innerWidth / tiles.size);
   state.mapMaxRow = Math.ceil(window.innerHeight / tiles.size);
   initializeLayersFromData([], 0);
+  updateBackgroundTiles();
   saveMap();
 }
 

@@ -14,12 +14,14 @@ export function displayGame() {
     state.ctx.save();
     const zoom = state.camera.zoom;
     const canvas = state.canvas;
+    const snappedCameraX = Math.round(state.camera.x * zoom) / zoom;
+    const snappedCameraY = Math.round(state.camera.y * zoom) / zoom;
 
     state.ctx.translate(canvas.width / 2, canvas.height / 2);
     state.ctx.scale(zoom, zoom);
     state.ctx.translate(-canvas.width / 2 / zoom, -canvas.height / 2 / zoom);
 
-    state.ctx.translate(-state.camera.x, -state.camera.y);
+    state.ctx.translate(-snappedCameraX, -snappedCameraY);
   }
 
   displayBackground();
@@ -46,14 +48,14 @@ export function displayInfo() {
     drawText(
       `Brush size: ${state.editing.brushSize}/${state.constants.BRUSH_MAX_SIZE}`,
       15,
-      150,
+      150
     );
     drawText(
       `[A]utotiling enabled: ${
         state.editing.isAutotilingEnabled ? "Yes" : "No"
       }`,
       15,
-      180,
+      180
     );
 
     drawText(`[M]ove`, 15, 240);
@@ -107,7 +109,7 @@ export function displayBackground(canvas = null, ctx = null) {
         tile.desX,
         tile.desY,
         state.tiles.size,
-        state.tiles.size,
+        state.tiles.size
       );
     }
     return;
@@ -122,7 +124,7 @@ export function displayBackground(canvas = null, ctx = null) {
       tile.desX,
       tile.desY,
       state.tiles.size,
-      state.tiles.size,
+      state.tiles.size
     );
   }
 }
@@ -153,7 +155,7 @@ export function displayGameMap() {
         (i % state.mapMaxColumn) * state.tiles.size,
         Math.floor(i / state.mapMaxColumn) * state.tiles.size,
         state.tiles.size,
-        state.tiles.size,
+        state.tiles.size
       );
     }
     state.ctx.globalAlpha = previousAlpha;

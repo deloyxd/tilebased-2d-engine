@@ -38,7 +38,7 @@ function createEmptyLayer(index) {
     id: generateLayerId(index),
     name: defaultLayerName(index),
     visible: true,
-    tiles: new Array(size).fill(getFillValue()),
+    tiles: new Array(size).fill(getFillValue())
   };
 }
 
@@ -56,17 +56,14 @@ export function initializeLayersFromData(layersData = [], activeIndex = 0) {
         id: layer.id || generateLayerId(idx),
         name: layer.name || defaultLayerName(idx),
         visible: layer.visible !== undefined ? layer.visible : true,
-        tiles: padTilesToSize(layer.tiles, size),
+        tiles: padTilesToSize(layer.tiles, size)
       };
-    },
+    }
   );
 
   state.tiles.layers = normalizedLayers;
   setActiveLayerIndex(
-    Math.min(
-      Math.max(activeIndex, 0),
-      Math.max(normalizedLayers.length - 1, 0),
-    ),
+    Math.min(Math.max(activeIndex, 0), Math.max(normalizedLayers.length - 1, 0))
   );
 }
 
@@ -123,14 +120,14 @@ export function resizeLayers(newColumns, newRows) {
   });
 
   setActiveLayerIndex(
-    Math.min(state.editing.activeLayerIndex, state.tiles.layers.length - 1),
+    Math.min(state.editing.activeLayerIndex, state.tiles.layers.length - 1)
   );
 }
 
 export function cloneLayers(layers = state.tiles.layers) {
   return layers.map((layer) => ({
     ...layer,
-    tiles: layer.tiles.slice(),
+    tiles: layer.tiles.slice()
   }));
 }
 

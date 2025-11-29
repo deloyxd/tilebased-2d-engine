@@ -76,7 +76,7 @@ const tileTypeLabels = {
   146: "Object: Rope: Body: Horizontal",
   147: "Object: Rope: Head: Right",
   148: "Object: Rope: Head: Bottom",
-  149: "Background",
+  149: "Background"
 };
 
 function getPreviousTileType(tileIndex) {
