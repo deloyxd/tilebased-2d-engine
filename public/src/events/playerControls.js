@@ -3,6 +3,7 @@ import {
   getPlayerTilePositionPublic,
   getCurrentLevelData
 } from "../gameplay/levels.js";
+import { exitMap } from "./uiEvents.js";
 
 const KEY_MAP = {
   ArrowLeft: ["left"],
@@ -142,18 +143,28 @@ function hideGameTextModal() {
 }
 
 function handleKeyDown(event) {
-  if (!state.gameplay.isPlaying) return;
-
   if (event.code === "KeyE") {
     event.preventDefault();
 
     const interaction = state.gameplay.interaction;
-    if (!interaction) return;
-
-    if (interaction.isTextModalOpen) {
+    if (!interaction) {
+      if (!state.gameplay.isPlaying) return;
+    } else if (interaction.isTextModalOpen) {
       hideGameTextModal();
+      if (state.gameplay.isGameOver) {
+        const currentLevelData = getCurrentLevelData();
+        if (
+          currentLevelData &&
+          typeof currentLevelData.resetSpikeGameOverState === "function"
+        ) {
+          currentLevelData.resetSpikeGameOverState();
+        }
+        exitMap();
+      }
       return;
     }
+
+    if (!state.gameplay.isPlaying) return;
 
     const tileSize = state.tiles.size || 1;
     const playerTilePos = getPlayerTilePositionPublic(tileSize);
@@ -194,6 +205,10 @@ function handleKeyDown(event) {
     return;
   }
 
+  if (!state.gameplay.isPlaying) return;
+
+  if (state.gameplay.isGameOver) return;
+
   const mapped = KEY_MAP[event.code];
   if (!mapped) return;
   event.preventDefault();
@@ -204,6 +219,8 @@ function handleKeyDown(event) {
 }
 
 function handleKeyUp(event) {
+  if (state.gameplay.isGameOver) return;
+
   const mapped = KEY_MAP[event.code];
   if (!mapped) return;
   if (!state.gameplay.isPlaying) return;

@@ -175,6 +175,10 @@ export function checkTileInteractions() {
   if (typeof currentLevelData.checkGoldenBoxBump === "function") {
     currentLevelData.checkGoldenBoxBump();
   }
+
+  if (typeof currentLevelData.checkSpikeCollision === "function") {
+    currentLevelData.checkSpikeCollision();
+  }
 }
 
 export function resetLevelState() {
@@ -190,6 +194,13 @@ export function resetLevelState() {
     typeof currentLevelData.resetFlagHeadCooldown === "function"
   ) {
     currentLevelData.resetFlagHeadCooldown();
+  }
+
+  if (
+    currentLevelData &&
+    typeof currentLevelData.resetSpikeGameOverState === "function"
+  ) {
+    currentLevelData.resetSpikeGameOverState();
   }
 
   touchedTiles.clear();

@@ -154,6 +154,12 @@ function setEditorButtonsVisibility(shouldHide) {
 
 export function updatePlayer(deltaSeconds = 0) {
   if (!state.gameplay.isPlaying || !state.canvas) return;
+  if (state.gameplay.isGameOver) {
+    const player = state.player;
+    player.velocity.x = 0;
+    player.velocity.y = 0;
+    return;
+  }
   const player = state.player;
   const input = state.gameplay.input;
   const dt = Math.max(deltaSeconds, 0);
