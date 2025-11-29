@@ -1076,11 +1076,10 @@ async function handleShowAllLevels(hideCheckboxes = false) {
           return;
         }
 
+        console.log(state.gameplay.playMode.isActive);
         if (hideCheckboxes) {
           continueOpenMap();
         } else {
-          
-          console.log(state.gameplay.playMode.isActive);
           const confirmed = confirm(
             "Open this level? This will replace your current map."
           );
