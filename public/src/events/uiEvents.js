@@ -132,28 +132,33 @@ export function updateSaveButtonVisibility() {
   const hasLoadedLevel =
     state.lastLoadedLevel.id && state.lastLoadedLevel.author;
   const isPlayMode = state.gameplay.playMode.isActive;
+  const isPlaying = state.gameplay.isPlaying;
 
   if (dom.testBtn) {
-    dom.testBtn.style.display = "";
+    dom.testBtn.style.display = isPlayMode ? "none" : "";
   }
 
   if (dom.saveLevelBtn) {
-    dom.saveLevelBtn.style.display = !isEmpty && hasLoadedLevel ? "" : "none";
+    // Hide Save button during play mode
+    dom.saveLevelBtn.style.display =
+      isPlayMode || isPlaying || isEmpty || !hasLoadedLevel ? "none" : "";
   }
 
   if (dom.saveAsLevelBtn) {
-    dom.saveAsLevelBtn.style.display = !isEmpty ? "" : "none";
+    // Hide Save As button during play mode
+    dom.saveAsLevelBtn.style.display =
+      isPlayMode || isPlaying || isEmpty ? "none" : "";
   }
 
-  if (dom.resetBtn && !state.gameplay.isPlaying) {
+  if (dom.resetBtn && !isPlaying) {
     dom.resetBtn.style.display = isEmpty ? "none" : "";
   }
 
-  if (dom.exportBtn && !state.gameplay.isPlaying) {
+  if (dom.exportBtn && !isPlaying) {
     dom.exportBtn.style.display = isEmpty ? "none" : "";
   }
 
-  if (dom.revertBtn && !state.gameplay.isPlaying) {
+  if (dom.revertBtn && !isPlaying) {
     dom.revertBtn.style.display = state.originalMapData ? "" : "none";
   }
 
@@ -307,6 +312,14 @@ export function registerUIEvents() {
   updateSaveButtonVisibility();
 }
 
+function markLevel1Completed() {
+  localStorage.setItem("level1Completed", "true");
+}
+
+function isLevel1Completed() {
+  return localStorage.getItem("level1Completed") === "true";
+}
+
 async function handlePlayGame() {
   if (!dom.playGameBtn) return;
 
@@ -335,11 +348,37 @@ async function handlePlayGame() {
       return;
     }
 
+    let startLevelIndex = 0;
+
+    // Check if level 1 was completed and offer to skip it
+    if (
+      isLevel1Completed() &&
+      playableLevels[0] &&
+      playableLevels[0].level === 1
+    ) {
+      const skipLevel1 = confirm(
+        "You've already completed Level 1 (Tutorial). Would you like to skip it and start from Level 2?"
+      );
+
+      if (skipLevel1) {
+        // Find level 2
+        const level2Index = playableLevels.findIndex(
+          (level) => level.level === 2
+        );
+        if (level2Index !== -1) {
+          startLevelIndex = level2Index;
+        } else {
+          // If level 2 doesn't exist, just start from level 1 anyway
+          startLevelIndex = 0;
+        }
+      }
+    }
+
     state.gameplay.playMode.isActive = true;
     state.gameplay.playMode.levels = playableLevels;
-    state.gameplay.playMode.currentLevelIndex = 0;
+    state.gameplay.playMode.currentLevelIndex = startLevelIndex;
 
-    await loadLevelForPlay(playableLevels[0]);
+    await loadLevelForPlay(playableLevels[startLevelIndex]);
 
     hideLandingPage();
   } catch (error) {
@@ -390,6 +429,13 @@ export async function proceedToNextLevel() {
   }
 
   const playMode = state.gameplay.playMode;
+  const currentLevel = playMode.levels[playMode.currentLevelIndex];
+
+  // Mark level 1 as completed when finishing it
+  if (currentLevel && currentLevel.level === 1) {
+    markLevel1Completed();
+  }
+
   const nextIndex = playMode.currentLevelIndex + 1;
 
   if (nextIndex >= playMode.levels.length) {
