@@ -325,6 +325,7 @@ function collectKey(tileData) {
   collectibles.collectedKeyKeys.add(key);
   collectibles.keysCollected += 1;
 
+  state.editing.isAutotilingEnabled = true;
   spawnObject(
     KEY_CONFIG.tileSpawnPosition.col,
     KEY_CONFIG.tileSpawnPosition.row,
