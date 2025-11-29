@@ -75,6 +75,12 @@ export function togglePlayMode() {
       } else if (Array.isArray(collectibles.collectedDiamondKeys)) {
         collectibles.collectedDiamondKeys.length = 0;
       }
+      collectibles.keysCollected = 0;
+      if (collectibles.collectedKeyKeys?.clear) {
+        collectibles.collectedKeyKeys.clear();
+      } else if (Array.isArray(collectibles.collectedKeyKeys)) {
+        collectibles.collectedKeyKeys.length = 0;
+      }
     }
 
     resetPlayerState();

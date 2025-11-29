@@ -50,6 +50,15 @@ function recalculateDiamondTotalsFromMap() {
     collectibles.collectedDiamondKeys.length = 0;
   }
 
+  collectibles.keysCollected = 0;
+  collectibles.keysTotal = 0;
+
+  if (collectibles.collectedKeyKeys?.clear) {
+    collectibles.collectedKeyKeys.clear();
+  } else if (Array.isArray(collectibles.collectedKeyKeys)) {
+    collectibles.collectedKeyKeys.length = 0;
+  }
+
   if (!state.tiles.layers.length || !state.mapMaxColumn || !state.mapMaxRow) {
     return;
   }

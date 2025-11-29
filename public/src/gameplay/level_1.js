@@ -31,6 +31,12 @@ const LEVER_EFFECTS = {
   keyTileIndex: 18
 };
 
+const KEY_CONFIG = {
+  keyPosition: { col: 38, row: 9 },
+  tileSpawnPosition: { col: 40, row: 9 },
+  groundTileIndex: 0
+};
+
 function getWorldPosition(col, row) {
   const tileSize = state.tiles.size || 36;
   return {
@@ -50,7 +56,7 @@ function panCameraTo(col, row, callback) {
   state.camera.panEasingFactor = 25;
 }
 
-function spawnObject(col, row) {
+function spawnObject(col, row, spawnTileIndex = 0) {
   const mapIndex = row * state.mapMaxColumn + col;
   if (mapIndex < 0 || mapIndex >= state.mapMaxColumn * state.mapMaxRow) {
     console.warn("Invalid position for object spawn:", col, row);
@@ -79,7 +85,7 @@ function spawnObject(col, row) {
     const targetLayerIndex = state.tiles.layers.indexOf(targetLayer);
 
     state.editing.activeLayerIndex = targetLayerIndex;
-    placeTileAt(mapIndex, LEVER_EFFECTS.keyTileIndex);
+    placeTileAt(mapIndex, spawnTileIndex);
 
     state.editing.activeLayerIndex = originalActiveIndex;
   }
@@ -187,8 +193,10 @@ function interactWithObject(type, tileData) {
 function getAllTilesFromMap() {
   const allTiles = [];
   let diamondsTotal = 0;
+  let keysTotal = 0;
   if (!state.tiles.layers.length || !state.mapMaxColumn || !state.mapMaxRow) {
     state.gameplay.collectibles.diamondsTotal = 0;
+    state.gameplay.collectibles.keysTotal = 0;
     return allTiles;
   }
 
@@ -213,6 +221,9 @@ function getAllTilesFromMap() {
         if (label && label.toLowerCase().includes("diamond")) {
           diamondsTotal++;
         }
+        if (label && label.toLowerCase().includes("key")) {
+          keysTotal++;
+        }
 
         allTiles.push({
           col,
@@ -224,6 +235,7 @@ function getAllTilesFromMap() {
   }
 
   state.gameplay.collectibles.diamondsTotal = diamondsTotal;
+  state.gameplay.collectibles.keysTotal = keysTotal;
 
   return allTiles;
 }
@@ -245,6 +257,38 @@ function collectDiamond(tileData) {
 
   collectibles.collectedDiamondKeys.add(key);
   collectibles.diamondsCollected += 1;
+}
+
+function getKeyKey(col, row) {
+  return `${col},${row}`;
+}
+
+function collectKey(tileData) {
+  if (!tileData || tileData.col === undefined || tileData.row === undefined) {
+    return;
+  }
+
+  const collectibles = state.gameplay.collectibles;
+  if (!collectibles) return;
+
+  if (!collectibles.collectedKeyKeys) {
+    collectibles.collectedKeyKeys = new Set();
+  }
+  if (collectibles.keysCollected === undefined) {
+    collectibles.keysCollected = 0;
+  }
+
+  const key = getKeyKey(tileData.col, tileData.row);
+  if (collectibles.collectedKeyKeys.has(key)) return;
+
+  collectibles.collectedKeyKeys.add(key);
+  collectibles.keysCollected += 1;
+
+  spawnObject(
+    KEY_CONFIG.tileSpawnPosition.col,
+    KEY_CONFIG.tileSpawnPosition.row,
+    KEY_CONFIG.groundTileIndex
+  );
 }
 
 function getLeverKey(col, row) {
@@ -320,6 +364,14 @@ export default {
 
     if (lower.includes("diamond")) {
       collectDiamond(tileData);
+      return;
+    }
+
+    if (lower.includes("key")) {
+      const keyPos = KEY_CONFIG.keyPosition;
+      if (tileData.col === keyPos.col && tileData.row === keyPos.row) {
+        collectKey(tileData);
+      }
       return;
     }
   },

@@ -44,11 +44,14 @@ export function displayInfo() {
 
   if (state.gameplay.isPlaying && state.gameplay.playMode.isActive) {
     const collectibles = state.gameplay.collectibles || {};
-    const collected = collectibles.diamondsCollected ?? 0;
-    const total = collectibles.diamondsTotal ?? 0;
+    const diamondsCollected = collectibles.diamondsCollected ?? 0;
+    const diamondsTotal = collectibles.diamondsTotal ?? 0;
+    const keysCollected = collectibles.keysCollected ?? 0;
+    const keysTotal = collectibles.keysTotal ?? 0;
 
     state.ctx.font = "bold 16px monospace";
-    drawText(`Diamonds: ${collected} / ${total}`, 15, 55);
+    drawText(`Diamonds: ${diamondsCollected} / ${diamondsTotal}`, 15, 55);
+    drawText(`Keys: ${keysCollected} / ${keysTotal}`, 15, 75);
     state.ctx.font = "16px monospace";
   }
 
@@ -164,6 +167,16 @@ export function displayGameMap() {
         ) {
           const label = getTileTypeLabel(tileIndex);
           if (label && label.toLowerCase().includes("diamond")) {
+            continue;
+          }
+        }
+        if (
+          collectibles &&
+          collectibles.collectedKeyKeys &&
+          collectibles.collectedKeyKeys.has(key)
+        ) {
+          const label = getTileTypeLabel(tileIndex);
+          if (label && label.toLowerCase().includes("key")) {
             continue;
           }
         }

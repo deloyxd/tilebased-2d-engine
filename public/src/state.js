@@ -136,7 +136,10 @@ const state = {
     collectibles: {
       diamondsTotal: 0,
       diamondsCollected: 0,
-      collectedDiamondKeys: new Set()
+      collectedDiamondKeys: new Set(),
+      keysTotal: 0,
+      keysCollected: 0,
+      collectedKeyKeys: new Set()
     }
   },
   player: {
