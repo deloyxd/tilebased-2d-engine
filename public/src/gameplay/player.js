@@ -67,6 +67,17 @@ export function togglePlayMode() {
   state.gameplay.input.down = false;
 
   if (state.gameplay.isPlaying) {
+    const collectibles = state.gameplay.collectibles;
+    if (collectibles) {
+      collectibles.diamondsCollected = 0;
+      collectibles.diamondsTotal = 0;
+      if (collectibles.collectedDiamondKeys?.clear) {
+        collectibles.collectedDiamondKeys.clear();
+      } else if (Array.isArray(collectibles.collectedDiamondKeys)) {
+        collectibles.collectedDiamondKeys.length = 0;
+      }
+    }
+
     resetPlayerState();
     if (button) button.textContent = "Stop";
     setEditorButtonsVisibility(true);

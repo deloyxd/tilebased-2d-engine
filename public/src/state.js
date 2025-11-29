@@ -132,6 +132,11 @@ const state = {
     interaction: {
       activeSign: null,
       isTextModalOpen: false
+    },
+    collectibles: {
+      diamondsTotal: 0,
+      diamondsCollected: 0,
+      collectedDiamondKeys: new Set()
     }
   },
   player: {

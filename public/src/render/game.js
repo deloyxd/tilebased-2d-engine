@@ -1,6 +1,7 @@
 import state from "../state.js";
 import { getLayerStatusText } from "../tiles/layers.js";
 import { drawPlayer } from "../gameplay/player.js";
+import { getTileTypeLabel } from "../tiles/types.js";
 
 export function displayLoading() {
   if (state.ctx.fillStyle !== "black") state.ctx.fillStyle = "black";
@@ -41,6 +42,16 @@ export function displayInfo() {
   drawText(`FPS: ${state.fps}`, 15, 30);
   state.ctx.font = "16px monospace";
 
+  if (state.gameplay.isPlaying && state.gameplay.playMode.isActive) {
+    const collectibles = state.gameplay.collectibles || {};
+    const collected = collectibles.diamondsCollected ?? 0;
+    const total = collectibles.diamondsTotal ?? 0;
+
+    state.ctx.font = "bold 16px monospace";
+    drawText(`Diamonds: ${collected} / ${total}`, 15, 55);
+    state.ctx.font = "16px monospace";
+  }
+
   if (state.editing.isEditing) {
     drawText(`[B]rush`, 15, 60);
     drawText(`[E]raser`, 15, 90);
@@ -74,12 +85,6 @@ export function displayInfo() {
     drawText(`Ctrl + drag to scroll inside window`, 15, 630);
     return;
   }
-
-  // if (state.gameplay.isPlaying) {
-  //   drawText(`[W / Space / Up arrow] jump`, 15, 60);
-  //   drawText(`[A / D / Left / Right arrow] move`, 15, 90);
-  //   return;
-  // }
 }
 
 function drawText(text, x, y) {
@@ -145,6 +150,25 @@ export function displayGameMap() {
     for (let i = 0; i < layerTiles.length; i++) {
       const tileIndex = layerTiles[i];
       if (tileIndex === state.editing.eraserBrush) continue;
+
+      const col = i % state.mapMaxColumn;
+      const row = Math.floor(i / state.mapMaxColumn);
+
+      if (state.gameplay.isPlaying && state.gameplay.playMode.isActive) {
+        const key = `${col},${row}`;
+        const collectibles = state.gameplay.collectibles;
+        if (
+          collectibles &&
+          collectibles.collectedDiamondKeys &&
+          collectibles.collectedDiamondKeys.has(key)
+        ) {
+          const label = getTileTypeLabel(tileIndex);
+          if (label && label.toLowerCase().includes("diamond")) {
+            continue;
+          }
+        }
+      }
+
       state.ctx.drawImage(
         state.loadedImages["tileset"].image,
         (tileIndex % tilesPerRow) * state.loadedImages["tileset"].size,
@@ -152,8 +176,8 @@ export function displayGameMap() {
           state.loadedImages["tileset"].size,
         state.loadedImages["tileset"].size,
         state.loadedImages["tileset"].size,
-        (i % state.mapMaxColumn) * state.tiles.size,
-        Math.floor(i / state.mapMaxColumn) * state.tiles.size,
+        col * state.tiles.size,
+        row * state.tiles.size,
         state.tiles.size,
         state.tiles.size
       );
