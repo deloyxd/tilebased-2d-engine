@@ -95,6 +95,8 @@ const state = {
     levelModal: null,
     levelModalClose: null,
     levelModalContent: null,
+    gameTextModal: null,
+    gameTextModalContent: null,
     createNewMapBtn: null,
     revertBtn: null,
     landingPage: null,
@@ -126,6 +128,10 @@ const state = {
       isActive: false,
       levels: [],
       currentLevelIndex: -1,
+    },
+    interaction: {
+      activeSign: null,
+      isTextModalOpen: false,
     },
   },
   player: {

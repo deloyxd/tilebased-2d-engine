@@ -25,6 +25,10 @@ export function initDomReferences() {
   state.dom.levelModal = document.getElementById("levelModal");
   state.dom.levelModalClose = document.getElementById("levelModalClose");
   state.dom.levelModalContent = document.getElementById("levelModalContent");
+  state.dom.gameTextModal = document.getElementById("gameTextModal");
+  state.dom.gameTextModalContent = document.getElementById(
+    "gameTextModalContent",
+  );
   state.dom.createNewMapBtn = document.getElementById("createNewMapBtn");
   state.dom.revertBtn = document.getElementById("revertBtn");
   state.dom.landingPage = document.getElementById("landingPage");

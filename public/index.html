@@ -5,6 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Island Venture</title>
     <link rel="icon" type="image/png" href="./images/favicon.png" />
+    <style>
+      @keyframes game-text-fun-bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+          color: #ffeb3b;
+        }
+        25% {
+          transform: translateY(-6px);
+          color: #4caf50;
+        }
+        50% {
+          transform: translateY(0);
+          color: #03a9f4;
+        }
+        75% {
+          transform: translateY(-3px);
+          color: #ff9800;
+        }
+      }
+
+      .game-text-fun-letter {
+        display: inline-block;
+        animation-name: game-text-fun-bounce;
+        animation-duration: 0.7s;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+      }
+
+      @keyframes game-text-bloody-shake {
+        0%,
+        100% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        20% {
+          transform: translate(-1px, -1px) rotate(-2deg);
+        }
+        40% {
+          transform: translate(2px, 1px) rotate(1deg);
+        }
+        60% {
+          transform: translate(-2px, 2px) rotate(-1deg);
+        }
+        80% {
+          transform: translate(1px, -2px) rotate(2deg);
+        }
+      }
+
+      .game-text-bloody-letter {
+        display: inline-block;
+        color: #d32f2f;
+        font-weight: bold;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(211, 47, 47, 0.9);
+        animation-name: game-text-bloody-shake;
+        animation-duration: 0.4s;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+      }
+    </style>
   </head>
   <body
     style="
@@ -19,6 +78,45 @@
       id="screen"
       style="background-color: gray; display: block; z-index: 0"
     ></canvas>
+    <div
+      id="gameTextModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: rgba(0, 0, 0, 0.6);
+        align-items: center;
+        justify-content: center;
+        font-family: 'Courier New', Courier, monospace;
+        color: #f5f5f5;
+      "
+    >
+      <div
+        style="
+          background: #222;
+          border-radius: 8px;
+          padding: 16px 20px;
+          max-width: 480px;
+          width: 90%;
+          border: 2px solid #555;
+          box-shadow: 0 0 16px rgba(0, 0, 0, 0.7);
+        "
+      >
+        <div
+          id="gameTextModalContent"
+          style="
+            white-space: pre-wrap;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+          "
+        ></div>
+        <div style="font-size: 12px; opacity: 0.8; text-align: right">
+          Press E to close
+        </div>
+      </div>
+    </div>
     <div
       id="landingPage"
       style="

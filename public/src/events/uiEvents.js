@@ -12,6 +12,7 @@ import {
   isMapModifiedFromOriginal,
 } from "../map/storage.js";
 import { togglePlayMode, resetPlayerState } from "../gameplay/player.js";
+import { resetLevelState } from "../gameplay/levels.js";
 import {
   initFirestore,
   getAuthors,
@@ -363,12 +364,13 @@ async function loadLevelForPlay(level) {
   }
 
   await setLevelBeingPlayed(level.id);
-  
+
   importMapFromData(level.mapData);
   state.lastLoadedLevel.id = level.id;
   state.lastLoadedLevel.author = level.author || null;
   saveLastLoadedLevel();
   updateSaveButtonVisibility();
+  resetLevelState();
 
   if (!state.gameplay.isPlaying) {
     togglePlayMode();

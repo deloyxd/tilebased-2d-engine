@@ -1,5 +1,9 @@
 import state from "../state.js";
 import { getTileTypeLabel } from "../tiles/types.js";
+import {
+  checkTileInteractions,
+  getPlayerTilePositionPublic,
+} from "./levels.js";
 
 const PLAYER_CONSTANTS = {
   widthScale: 1.33,
@@ -229,6 +233,8 @@ export function updatePlayer(deltaSeconds = 0) {
     player.velocity.y = 0;
     player.onGround = true;
   }
+
+  checkTileInteractions();
 }
 
 export function drawPlayer() {
@@ -272,6 +278,7 @@ export function drawPlayer() {
     player.height,
   );
   state.ctx.restore();
+  drawInteractionPrompt();
 }
 
 export function resetPlayerState() {
@@ -750,4 +757,56 @@ function detectWater(tileSize) {
     }
   }
   return false;
+}
+
+function drawInteractionPrompt() {
+  if (!state.gameplay.isPlaying || !state.ctx) return;
+
+  const interaction = state.gameplay.interaction;
+  if (
+    !interaction ||
+    !interaction.activeSign ||
+    interaction.isTextModalOpen
+  ) {
+    return;
+  }
+
+  const tileSize = state.tiles.size || 1;
+  const playerTilePos = getPlayerTilePositionPublic(tileSize);
+  if (
+    playerTilePos.col !== interaction.activeSign.col ||
+    playerTilePos.row !== interaction.activeSign.row
+  ) {
+    return;
+  }
+
+  const ctx = state.ctx;
+  const player = state.player;
+  const text = "[E] to interact";
+  const textX = player.position.x + player.width / 2;
+  const textY = player.position.y - 14;
+
+  ctx.save();
+  ctx.font = "bold 14px monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const metrics = ctx.measureText(text);
+  const paddingX = 8;
+  const paddingY = 6;
+  const boxWidth = metrics.width + paddingX * 2;
+  const boxHeight = 18;
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+  ctx.fillRect(
+    textX - boxWidth / 2,
+    textY - boxHeight,
+    boxWidth,
+    boxHeight,
+  );
+
+  ctx.fillStyle = "#f8f9fa";
+  ctx.fillText(text, textX, textY - boxHeight / 2);
+
+  ctx.restore();
 }
