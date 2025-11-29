@@ -37,6 +37,13 @@ const KEY_CONFIG = {
   groundTileIndex: 0
 };
 
+const GOLDEN_BOX_LOCKED_CONFIG = {
+  position: { col: 29, row: 19 },
+  onBump: (tileData) => {
+    console.log("Player bumped into golden box locked at:", tileData);
+  }
+};
+
 function getWorldPosition(col, row) {
   const tileSize = state.tiles.size || 36;
   return {
@@ -341,6 +348,120 @@ function activateLever(tileData) {
   }
 }
 
+let goldenBoxBumpTriggered = false;
+
+function resetGoldenBoxBumpState() {
+  goldenBoxBumpTriggered = false;
+}
+
+function checkGoldenBoxBump() {
+  if (!state.gameplay.isPlaying || !state.canvas) return;
+  if (!state.tiles.layers.length || !state.mapMaxColumn || !state.mapMaxRow)
+    return;
+
+  const player = state.player;
+  const tileSize = state.tiles.size || 1;
+  const config = GOLDEN_BOX_LOCKED_CONFIG;
+  const targetCol = config.position.col;
+  const targetRow = config.position.row;
+
+  const isJumping = player.velocity.y < 0;
+
+  if (!isJumping) {
+    goldenBoxBumpTriggered = false;
+    return;
+  }
+
+  if (goldenBoxBumpTriggered) return;
+
+  const collisionOffsetX = getCollisionOffsetXForBump();
+  const collisionOffsetY = (player.height - player.collisionHeight) / 2;
+  const padding = 6;
+
+  const headCollisionX = player.position.x + collisionOffsetX + padding;
+  const headCollisionY = player.position.y + collisionOffsetY;
+  const headCollisionWidth = player.collisionWidth - padding * 2;
+  const headCollisionHeight = player.collisionHeight;
+
+  const targetBoxX = targetCol * tileSize;
+  const targetBoxY = targetRow * tileSize;
+  const targetBoxBottom = targetBoxY + tileSize;
+
+  const horizontalOverlap =
+    headCollisionX < targetBoxX + tileSize &&
+    headCollisionX + headCollisionWidth > targetBoxX;
+
+  if (!horizontalOverlap) return;
+
+  const headTop = headCollisionY;
+  const headBottom = headCollisionY + headCollisionHeight;
+
+  const headTopTileRow = Math.floor(headTop / tileSize);
+
+  const expectedHeadRow = targetRow + 1;
+
+  const bumpThreshold = 5;
+  const isHeadInRowBelow = headTopTileRow === expectedHeadRow;
+  const isHeadAtBoxBottom =
+    headTop >= targetBoxBottom - bumpThreshold &&
+    headTop <= targetBoxBottom + bumpThreshold;
+
+  const isHeadTouchingBoxBottom =
+    (isHeadInRowBelow || isHeadAtBoxBottom) && headBottom > targetBoxY;
+
+  if (!isHeadTouchingBoxBottom) return;
+
+  const mapIndex = targetRow * state.mapMaxColumn + targetCol;
+  if (mapIndex < 0 || mapIndex >= state.mapMaxColumn * state.mapMaxRow) return;
+
+  for (const layer of state.tiles.layers) {
+    if (!layer.visible) continue;
+    const tileIndex = layer.tiles[mapIndex];
+    if (tileIndex === undefined || tileIndex === state.editing.eraserBrush)
+      continue;
+
+    const label = getTileTypeLabel(tileIndex);
+    if (
+      label &&
+      label.toLowerCase().includes("gold box") &&
+      label.toLowerCase().includes("locked")
+    ) {
+      const collectibles = state.gameplay.collectibles;
+      const hasKey =
+        collectibles &&
+        (collectibles.keysCollected > 0 ||
+          (collectibles.collectedKeyKeys &&
+            collectibles.collectedKeyKeys.size > 0));
+
+      if (!hasKey) {
+        return;
+      }
+
+      goldenBoxBumpTriggered = true;
+
+      const tileData = {
+        col: targetCol,
+        row: targetRow,
+        tileIndex: tileIndex
+      };
+
+      if (config.onBump && typeof config.onBump === "function") {
+        config.onBump(tileData);
+      }
+      return;
+    }
+  }
+}
+
+function getCollisionOffsetXForBump() {
+  const player = state.player;
+  const facingRight = player.facing >= 0;
+  const frontCollisionPadding = 8;
+  return facingRight
+    ? Math.max(0, player.width - player.collisionWidth - frontCollisionPadding)
+    : frontCollisionPadding;
+}
+
 export default {
   getAllTiles: getAllTilesFromMap,
   tiles: [
@@ -376,5 +497,7 @@ export default {
       return;
     }
   },
-  activateLever: activateLever
+  activateLever: activateLever,
+  checkGoldenBoxBump: checkGoldenBoxBump,
+  resetGoldenBoxBumpState: resetGoldenBoxBumpState
 };

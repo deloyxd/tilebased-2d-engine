@@ -171,9 +171,20 @@ export function checkTileInteractions() {
       currentLevelData.onTileTouch(tileData);
     }
   }
+
+  if (typeof currentLevelData.checkGoldenBoxBump === "function") {
+    currentLevelData.checkGoldenBoxBump();
+  }
 }
 
 export function resetLevelState() {
+  if (
+    currentLevelData &&
+    typeof currentLevelData.resetGoldenBoxBumpState === "function"
+  ) {
+    currentLevelData.resetGoldenBoxBumpState();
+  }
+
   touchedTiles.clear();
   currentLevelIndex = -1;
   currentLevelData = null;
