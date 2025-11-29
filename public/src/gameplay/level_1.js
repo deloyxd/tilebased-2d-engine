@@ -2,7 +2,7 @@ import state from "../state.js";
 import { getTileTypeLabel } from "../tiles/types.js";
 import { placeTileAt } from "../tiles/autotile.js";
 import { proceedToNextLevel, exitMap } from "../events/uiEvents.js";
-import { removeTouchedTile } from "./levels.js";
+import { removeTouchedTile, resetLevelState } from "./levels.js";
 import { showGameTextModal } from "../events/playerControls.js";
 
 const SIGN_TEXT = {
@@ -695,6 +695,7 @@ function checkSpikeCollision() {
 
         const gameOverMessage = `<bloody>GAME OVER</bloody>\n\nYou have been impaled by a spike! Better luck next time!`;
         showGameTextModal(gameOverMessage);
+        resetLevelState();
 
         gameOverTimeoutId = setTimeout(() => {
           exitMap();
