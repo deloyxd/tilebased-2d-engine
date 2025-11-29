@@ -695,7 +695,6 @@ function checkSpikeCollision() {
 
         const gameOverMessage = `<bloody>GAME OVER</bloody>\n\nYou have been impaled by a spike! Better luck next time!`;
         showGameTextModal(gameOverMessage);
-        resetLevelState();
 
         gameOverTimeoutId = setTimeout(() => {
           exitMap();
@@ -734,7 +733,7 @@ export default {
       onTouch: (tileData) => handleFlagHeadTouch(tileData)
     }
   ],
-  onTileTouch: (tileData) => {
+  onTileTouch: (tileData, callback = null) => {
     if (!tileData || tileData.tileIndex === undefined) {
       return;
     }
@@ -748,6 +747,12 @@ export default {
     }
 
     if (lower.includes("key")) {
+      let hasFailed = true;
+      if (state.gameplay.collectibles.keysTotal === 0) {
+        resetLeverAndKeyState();
+        callback(hasFailed);
+        return;
+      }
       const keyPos = KEY_CONFIG.keyPosition;
       if (tileData.col === keyPos.col && tileData.row === keyPos.row) {
         const mapIndex = keyPos.row * state.mapMaxColumn + keyPos.col;
@@ -774,16 +779,12 @@ export default {
           interaction.leverStates &&
           interaction.leverStates[leverKey] === true;
 
-        if (
-          (keyTileExists ||
-            (state.gameplay.collectibles &&
-              state.gameplay.collectibles.keysTotal &&
-              state.gameplay.collectibles.keysTotal > 0)) &&
-          leverActivated
-        ) {
+        if (keyTileExists && leverActivated) {
           collectKey(tileData);
+          hasFailed = false;
         }
       }
+      callback(hasFailed);
       return;
     }
 

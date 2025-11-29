@@ -168,7 +168,11 @@ export function checkTileInteractions() {
     if (typeof tileData.onTouch === "function") {
       tileData.onTouch(tileData);
     } else if (typeof currentLevelData.onTileTouch === "function") {
-      currentLevelData.onTileTouch(tileData);
+      currentLevelData.onTileTouch(tileData, (failed) => {
+        if (failed) {
+          touchedTiles.delete(tileKey);
+        }
+      });
     }
   }
 
