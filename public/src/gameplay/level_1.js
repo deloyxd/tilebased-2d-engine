@@ -14,7 +14,6 @@ const LEVER_CONFIG = {
     15: {
       type: "activate-only",
       onActivate: (tileData) => {
-        console.log("Lever activated at", tileData.col, tileData.row);
         handleLeverActivation(tileData);
       }
     }
@@ -22,13 +21,13 @@ const LEVER_CONFIG = {
 };
 
 const LEVER_EFFECTS = {
-  keySpawnPosition: { col: 40, row: 15 },
+  keySpawnPosition: { col: 38, row: 9 },
   tilesToRemove: [
-    { col: 38, row: 14 },
-    { col: 39, row: 14 },
-    { col: 40, row: 14 }
+    { col: 31, row: 19 },
+    { col: 31, row: 20 },
+    { col: 31, row: 21 }
   ],
-  cameraPanDuration: 1500,
+  cameraPanDuration: 500,
   keyTileIndex: 18
 };
 
@@ -48,6 +47,7 @@ function panCameraTo(col, row, callback) {
   state.camera.panCallback = callback;
   state.camera.panCallbackTime = null;
   state.camera.panHoldDuration = LEVER_EFFECTS.cameraPanDuration;
+  state.camera.panEasingFactor = 25;
 }
 
 function spawnObject(col, row) {
@@ -85,7 +85,7 @@ function spawnObject(col, row) {
   }
 }
 
-function removeTiles(tilesToRemove) {
+async function removeTiles(tilesToRemove, durationBetween = 0) {
   const emptyTileIndex = state.tiles.empty[0] || -1;
 
   for (const tile of tilesToRemove) {
@@ -108,37 +108,20 @@ function removeTiles(tilesToRemove) {
         break;
       }
     }
+
+    if (tilesToRemove.indexOf(tile) < tilesToRemove.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, durationBetween));
+    }
   }
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
 function handleLeverActivation(tileData) {
-  if (LEVER_EFFECTS.tilesToRemove.length > 0) {
-    const firstTile = LEVER_EFFECTS.tilesToRemove[0];
-    panCameraTo(firstTile.col, firstTile.row, () => {
-      removeTiles(LEVER_EFFECTS.tilesToRemove);
+  const firstTile = LEVER_EFFECTS.tilesToRemove[0];
+  panCameraTo(firstTile.col, firstTile.row, async () => {
+    await removeTiles(LEVER_EFFECTS.tilesToRemove, 500);
 
-      panCameraTo(
-        LEVER_EFFECTS.keySpawnPosition.col,
-        LEVER_EFFECTS.keySpawnPosition.row,
-        () => {
-          spawnObject(
-            LEVER_EFFECTS.keySpawnPosition.col,
-            LEVER_EFFECTS.keySpawnPosition.row
-          );
-
-          panCameraTo(
-            LEVER_EFFECTS.keySpawnPosition.col,
-            LEVER_EFFECTS.keySpawnPosition.row,
-            () => {
-              state.camera.targetX = null;
-              state.camera.targetY = null;
-              state.camera.isFollowingPlayer = true;
-            }
-          );
-        }
-      );
-    });
-  } else {
     panCameraTo(
       LEVER_EFFECTS.keySpawnPosition.col,
       LEVER_EFFECTS.keySpawnPosition.row,
@@ -154,12 +137,13 @@ function handleLeverActivation(tileData) {
           () => {
             state.camera.targetX = null;
             state.camera.targetY = null;
+            state.camera.panEasingFactor = null;
             state.camera.isFollowingPlayer = true;
           }
         );
       }
     );
-  }
+  });
 }
 
 function interactWithObject(type, tileData) {
@@ -338,8 +322,6 @@ export default {
       collectDiamond(tileData);
       return;
     }
-
-    console.log("Level 1: Global tile touch handler", tileData);
   },
   activateLever: activateLever
 };

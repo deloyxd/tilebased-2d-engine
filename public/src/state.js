@@ -167,7 +167,8 @@ const state = {
     panSpeed: 300,
     panCallback: null,
     panCallbackTime: null,
-    panHoldDuration: 0
+    panHoldDuration: 0,
+    panEasingFactor: null
   }
 };
 
