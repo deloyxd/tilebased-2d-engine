@@ -12,13 +12,15 @@ function getPlayerTilePosition(tileSize) {
   const player = state.player;
   const collisionOffsetX = getCollisionOffsetX();
   const collisionOffsetY = (player.height - player.collisionHeight) / 2;
-  
-  const playerCenterX = player.position.x + collisionOffsetX + player.collisionWidth / 2;
-  const playerCenterY = player.position.y + collisionOffsetY + player.collisionHeight / 2;
-  
+
+  const playerCenterX =
+    player.position.x + collisionOffsetX + player.collisionWidth / 2;
+  const playerCenterY =
+    player.position.y + collisionOffsetY + player.collisionHeight / 2;
+
   const col = Math.floor(playerCenterX / tileSize);
   const row = Math.floor(playerCenterY / tileSize);
-  
+
   return { col, row };
 }
 
@@ -60,7 +62,7 @@ export function checkTileInteractions() {
 
   const playMode = state.gameplay.playMode;
   const levelIndex = playMode.currentLevelIndex;
-  
+
   if (levelIndex < 0) return;
 
   const currentLevel = playMode.levels[levelIndex];
@@ -81,11 +83,11 @@ export function checkTileInteractions() {
   const playerTilePos = getPlayerTilePosition(tileSize);
 
   const tilesToCheck = currentLevelData.tiles || [];
-  
+
   if (typeof currentLevelData.getAllTiles === "function") {
     const allTiles = currentLevelData.getAllTiles();
     for (const tile of allTiles) {
-      if (!tilesToCheck.find(t => t.col === tile.col && t.row === tile.row)) {
+      if (!tilesToCheck.find((t) => t.col === tile.col && t.row === tile.row)) {
         tilesToCheck.push(tile);
       }
     }
@@ -93,7 +95,11 @@ export function checkTileInteractions() {
 
   for (const tileData of tilesToCheck) {
     if (tileData.col === undefined || tileData.row === undefined) continue;
-    if (tileData.col !== playerTilePos.col || tileData.row !== playerTilePos.row) continue;
+    if (
+      tileData.col !== playerTilePos.col ||
+      tileData.row !== playerTilePos.row
+    )
+      continue;
 
     const tileKey = getTileKey(tileData.col, tileData.row);
     if (touchedTiles.has(tileKey)) continue;
@@ -118,4 +124,3 @@ export function resetLevelState() {
 export function getCurrentLevelData() {
   return currentLevelData;
 }
-

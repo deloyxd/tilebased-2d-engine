@@ -763,11 +763,7 @@ function drawInteractionPrompt() {
   if (!state.gameplay.isPlaying || !state.ctx) return;
 
   const interaction = state.gameplay.interaction;
-  if (
-    !interaction ||
-    !interaction.activeSign ||
-    interaction.isTextModalOpen
-  ) {
+  if (!interaction || !interaction.activeSign || interaction.isTextModalOpen) {
     return;
   }
 
@@ -798,12 +794,7 @@ function drawInteractionPrompt() {
   const boxHeight = 18;
 
   ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-  ctx.fillRect(
-    textX - boxWidth / 2,
-    textY - boxHeight,
-    boxWidth,
-    boxHeight,
-  );
+  ctx.fillRect(textX - boxWidth / 2, textY - boxHeight, boxWidth, boxHeight);
 
   ctx.fillStyle = "#f8f9fa";
   ctx.fillText(text, textX, textY - boxHeight / 2);
