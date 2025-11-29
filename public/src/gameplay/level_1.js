@@ -134,7 +134,8 @@ function handleLeverActivation(tileData) {
       () => {
         spawnObject(
           LEVER_EFFECTS.keySpawnPosition.col,
-          LEVER_EFFECTS.keySpawnPosition.row
+          LEVER_EFFECTS.keySpawnPosition.row,
+          LEVER_EFFECTS.keyTileIndex
         );
 
         panCameraTo(
