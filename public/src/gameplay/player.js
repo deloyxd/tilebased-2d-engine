@@ -593,11 +593,7 @@ function findSignSpawnPosition() {
   if (!signTile) return null;
 
   const tileSize = state.tiles.size;
-  const x =
-    signTile.col * tileSize +
-    tileSize +
-    PLAYER_CONSTANTS.spawnOffsetX -
-    state.player.width / 2;
+  const x = signTile.col * tileSize + tileSize / 2 - state.player.width / 2;
   const y = signTile.row * tileSize - state.player.height;
   return { x, y };
 }
@@ -787,7 +783,15 @@ function drawInteractionPrompt() {
       playerTilePos.col === interaction.activeLever.col &&
       playerTilePos.row === interaction.activeLever.row
     ) {
-      activeObject = interaction.activeLever;
+      if (interaction.activeLever.type === "activate-only") {
+        const leverKey = `${interaction.activeLever.col},${interaction.activeLever.row}`;
+        const isActivated = interaction.leverStates?.[leverKey] || false;
+        if (!isActivated) {
+          activeObject = interaction.activeLever;
+        }
+      } else {
+        activeObject = interaction.activeLever;
+      }
     }
   }
 

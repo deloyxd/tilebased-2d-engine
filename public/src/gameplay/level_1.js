@@ -11,36 +11,12 @@ const SIGN_TEXT = {
 const LEVER_CONFIG = {
   37: {
     15: {
-      type: "toggle",
+      type: "activate-only",
       onActivate: (tileData) => {
         console.log("Lever activated at", tileData.col, tileData.row);
-      },
-      onDeactivate: (tileData) => {
-        console.log("Lever deactivated at", tileData.col, tileData.row);
       }
     }
   }
-  // Example lever at position (10, 10) - toggle type
-  // 10: {
-  //   10: {
-  //     type: "toggle",
-  //     onActivate: (tileData) => {
-  //       console.log("Lever activated at", tileData.col, tileData.row);
-  //     },
-  //     onDeactivate: (tileData) => {
-  //       console.log("Lever deactivated at", tileData.col, tileData.row);
-  //     }
-  //   }
-  // },
-  // Example lever at position (15, 15) - activate-only type
-  // 15: {
-  //   15: {
-  //     type: "activate-only",
-  //     onActivate: (tileData) => {
-  //       console.log("Lever activated (one-time) at", tileData.col, tileData.row);
-  //     }
-  //   }
-  // }
 };
 
 function interactWithObject(type, tileData) {
