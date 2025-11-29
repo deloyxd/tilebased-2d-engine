@@ -107,7 +107,7 @@ export function placeTileAt(mapIdx, tileIdx) {
   const activeLayerTiles = getActiveLayerTiles();
   activeLayerTiles[mapIdx] = tileIdx;
 
-  if (!state.editing.isAutotilingEnabled) return;
+  if (!state.gameplay.isPlaying && !state.editing.isAutotilingEnabled) return;
 
   const isErasing =
     state.tiles.empty.includes(tileIdx) ||
