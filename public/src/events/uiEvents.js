@@ -1079,6 +1079,8 @@ async function handleShowAllLevels(hideCheckboxes = false) {
         if (hideCheckboxes) {
           continueOpenMap();
         } else {
+          
+          console.log(state.gameplay.playMode.isActive);
           const confirmed = confirm(
             "Open this level? This will replace your current map."
           );
