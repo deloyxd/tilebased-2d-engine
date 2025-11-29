@@ -329,47 +329,96 @@ export function resetPlayerState() {
   }
 }
 
-export function updateCamera(_deltaSeconds = 0) {
+export function updateCamera(deltaSeconds = 0) {
   if (!state.gameplay.isPlaying || !state.canvas) return;
 
-  const player = state.player;
   const canvas = state.canvas;
   const tileSize = state.tiles.size || 1;
   const zoom = state.camera.zoom;
-
   const mapWidth = state.mapMaxColumn * tileSize;
   const mapHeight = state.mapMaxRow * tileSize;
-
-  const playerCenterX = player.position.x + player.width / 2;
-  const playerCenterY = player.position.y + player.height / 2;
-
-  const canvasRect = canvas.getBoundingClientRect();
-  const mouseX = state.pointer.x - canvasRect.left;
-  const mouseY = state.pointer.y - canvasRect.top;
-
-  const canvasCenterX = canvas.width / 2;
-  const canvasCenterY = canvas.height / 2;
-
-  const mouseOffsetX =
-    canvas.width > 0 ? ((mouseX - canvasCenterX) / canvasCenterX) * 0.3 : 0;
-  const mouseOffsetY =
-    canvas.height > 0 ? ((mouseY - canvasCenterY) / canvasCenterY) * 0.3 : 0;
-
   const scaledCanvasWidth = canvas.width / zoom;
   const scaledCanvasHeight = canvas.height / zoom;
-  const targetCameraX =
-    playerCenterX -
-    scaledCanvasWidth / 2 +
-    mouseOffsetX * scaledCanvasWidth * 0.2;
-  const targetCameraY =
-    playerCenterY -
-    scaledCanvasHeight / 2 +
-    mouseOffsetY * scaledCanvasHeight * 0.2;
 
-  const cameraSmoothingFactor = 50;
-  state.camera.x += (targetCameraX - state.camera.x) / cameraSmoothingFactor;
-  state.camera.y += (targetCameraY - state.camera.y) / cameraSmoothingFactor;
+  // Handle camera panning to target position
+  if (state.camera.targetX !== null && state.camera.targetY !== null) {
+    const targetX = state.camera.targetX - scaledCanvasWidth / 2;
+    const targetY = state.camera.targetY - scaledCanvasHeight / 2;
 
+    const dx = targetX - state.camera.x;
+    const dy = targetY - state.camera.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > 1) {
+      const moveDistance = state.camera.panSpeed * deltaSeconds;
+      if (distance <= moveDistance) {
+        state.camera.x = targetX;
+        state.camera.y = targetY;
+        // Camera reached target, start hold timer
+        if (state.camera.panCallbackTime === null) {
+          state.camera.panCallbackTime = performance.now();
+        }
+      } else {
+        state.camera.x += (dx / distance) * moveDistance;
+        state.camera.y += (dy / distance) * moveDistance;
+      }
+    } else {
+      state.camera.x = targetX;
+      state.camera.y = targetY;
+      // Camera reached target, start hold timer
+      if (state.camera.panCallbackTime === null) {
+        state.camera.panCallbackTime = performance.now();
+      }
+    }
+
+    // Check if hold duration has passed
+    if (
+      state.camera.panCallbackTime !== null &&
+      state.camera.panHoldDuration > 0
+    ) {
+      const elapsed = performance.now() - state.camera.panCallbackTime;
+      if (elapsed >= state.camera.panHoldDuration) {
+        // Hold duration complete, execute callback
+        const callback = state.camera.panCallback;
+        state.camera.panCallback = null;
+        state.camera.panCallbackTime = null;
+        state.camera.panHoldDuration = 0;
+        if (callback) callback();
+      }
+    }
+  } else if (state.camera.isFollowingPlayer) {
+    // Normal camera following behavior
+    const player = state.player;
+    const playerCenterX = player.position.x + player.width / 2;
+    const playerCenterY = player.position.y + player.height / 2;
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const mouseX = state.pointer.x - canvasRect.left;
+    const mouseY = state.pointer.y - canvasRect.top;
+
+    const canvasCenterX = canvas.width / 2;
+    const canvasCenterY = canvas.height / 2;
+
+    const mouseOffsetX =
+      canvas.width > 0 ? ((mouseX - canvasCenterX) / canvasCenterX) * 0.3 : 0;
+    const mouseOffsetY =
+      canvas.height > 0 ? ((mouseY - canvasCenterY) / canvasCenterY) * 0.3 : 0;
+
+    const targetCameraX =
+      playerCenterX -
+      scaledCanvasWidth / 2 +
+      mouseOffsetX * scaledCanvasWidth * 0.2;
+    const targetCameraY =
+      playerCenterY -
+      scaledCanvasHeight / 2 +
+      mouseOffsetY * scaledCanvasHeight * 0.2;
+
+    const cameraSmoothingFactor = 50;
+    state.camera.x += (targetCameraX - state.camera.x) / cameraSmoothingFactor;
+    state.camera.y += (targetCameraY - state.camera.y) / cameraSmoothingFactor;
+  }
+
+  // Clamp camera to map bounds
   const minCameraX = 0;
   const maxCameraX = Math.max(0, mapWidth - scaledCanvasWidth);
   const minCameraY = 0;

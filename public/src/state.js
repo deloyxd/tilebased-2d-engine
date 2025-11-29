@@ -160,7 +160,14 @@ const state = {
   camera: {
     x: 0,
     y: 0,
-    zoom: 2.0
+    zoom: 2.0,
+    isFollowingPlayer: true,
+    targetX: null,
+    targetY: null,
+    panSpeed: 300,
+    panCallback: null,
+    panCallbackTime: null,
+    panHoldDuration: 0
   }
 };
 

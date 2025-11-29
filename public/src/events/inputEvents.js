@@ -192,13 +192,15 @@ export function registerInputEvents() {
     }
 
     if (e.target.id === "screen" && state.loadedImages["tileset"]) {
+      state.pointer.x = e.clientX;
+      state.pointer.y = e.clientY;
+      const mapTileX = Math.floor(state.pointer.x / tiles.size);
+      const mapTileY = Math.floor(state.pointer.y / tiles.size);
       updatePaletteHeader(
         `| Selected tile #${editing.selectedTileIndex} | ${getTileTypeLabel(
           editing.selectedTileIndex
-        )}`
+        )} | (${mapTileX}, ${mapTileY})`
       );
-      state.pointer.x = e.clientX;
-      state.pointer.y = e.clientY;
 
       if (editing.isMoveSelecting && !editing.isMoving) {
         const tileX = Math.floor(state.pointer.x / tiles.size);

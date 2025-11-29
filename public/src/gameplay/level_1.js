@@ -1,5 +1,7 @@
 import state from "../state.js";
 import { getTileTypeLabel } from "../tiles/types.js";
+import { placeTileAt } from "../tiles/autotile.js";
+import { getActiveLayerTiles } from "../tiles/layers.js";
 
 const SIGN_TEXT = {
   17: {
@@ -14,10 +16,152 @@ const LEVER_CONFIG = {
       type: "activate-only",
       onActivate: (tileData) => {
         console.log("Lever activated at", tileData.col, tileData.row);
+        handleLeverActivation(tileData);
       }
     }
   }
 };
+
+const LEVER_EFFECTS = {
+  keySpawnPosition: { col: 40, row: 15 },
+  tilesToRemove: [
+    { col: 38, row: 14 },
+    { col: 39, row: 14 },
+    { col: 40, row: 14 }
+  ],
+  cameraPanDuration: 1500,
+  keyTileIndex: 18
+};
+
+function getWorldPosition(col, row) {
+  const tileSize = state.tiles.size || 36;
+  return {
+    x: col * tileSize + tileSize / 2,
+    y: row * tileSize + tileSize / 2
+  };
+}
+
+function panCameraTo(col, row, callback) {
+  const worldPos = getWorldPosition(col, row);
+  state.camera.isFollowingPlayer = false;
+  state.camera.targetX = worldPos.x;
+  state.camera.targetY = worldPos.y;
+  state.camera.panCallback = callback;
+  state.camera.panCallbackTime = null;
+  state.camera.panHoldDuration = LEVER_EFFECTS.cameraPanDuration;
+}
+
+function spawnObject(col, row) {
+  const mapIndex = row * state.mapMaxColumn + col;
+  if (mapIndex < 0 || mapIndex >= state.mapMaxColumn * state.mapMaxRow) {
+    console.warn("Invalid position for object spawn:", col, row);
+    return;
+  }
+
+  let targetLayer = null;
+  for (const layer of state.tiles.layers) {
+    if (layer.visible) {
+      const tileAtPos = layer.tiles[mapIndex];
+      if (tileAtPos === undefined || state.tiles.empty.includes(tileAtPos)) {
+        targetLayer = layer;
+        break;
+      }
+    }
+  }
+
+  if (!targetLayer && state.tiles.layers.length > 0) {
+    targetLayer =
+      state.tiles.layers[state.editing.activeLayerIndex] ||
+      state.tiles.layers[0];
+  }
+
+  if (targetLayer) {
+    const originalActiveIndex = state.editing.activeLayerIndex;
+    const targetLayerIndex = state.tiles.layers.indexOf(targetLayer);
+
+    state.editing.activeLayerIndex = targetLayerIndex;
+    placeTileAt(mapIndex, LEVER_EFFECTS.keyTileIndex);
+
+    state.editing.activeLayerIndex = originalActiveIndex;
+  }
+}
+
+function removeTiles(tilesToRemove) {
+  const emptyTileIndex = state.tiles.empty[0] || -1;
+
+  for (const tile of tilesToRemove) {
+    const mapIndex = tile.row * state.mapMaxColumn + tile.col;
+    if (mapIndex < 0 || mapIndex >= state.mapMaxColumn * state.mapMaxRow) {
+      continue;
+    }
+
+    for (const layer of state.tiles.layers) {
+      if (!layer.visible) continue;
+      const tileIndex = layer.tiles[mapIndex];
+      if (tileIndex !== undefined && !state.tiles.empty.includes(tileIndex)) {
+        const originalActiveIndex = state.editing.activeLayerIndex;
+        const targetLayerIndex = state.tiles.layers.indexOf(layer);
+
+        state.editing.activeLayerIndex = targetLayerIndex;
+        placeTileAt(mapIndex, emptyTileIndex);
+
+        state.editing.activeLayerIndex = originalActiveIndex;
+        break;
+      }
+    }
+  }
+}
+
+function handleLeverActivation(tileData) {
+  if (LEVER_EFFECTS.tilesToRemove.length > 0) {
+    const firstTile = LEVER_EFFECTS.tilesToRemove[0];
+    panCameraTo(firstTile.col, firstTile.row, () => {
+      removeTiles(LEVER_EFFECTS.tilesToRemove);
+
+      panCameraTo(
+        LEVER_EFFECTS.keySpawnPosition.col,
+        LEVER_EFFECTS.keySpawnPosition.row,
+        () => {
+          spawnObject(
+            LEVER_EFFECTS.keySpawnPosition.col,
+            LEVER_EFFECTS.keySpawnPosition.row
+          );
+
+          panCameraTo(
+            LEVER_EFFECTS.keySpawnPosition.col,
+            LEVER_EFFECTS.keySpawnPosition.row,
+            () => {
+              state.camera.targetX = null;
+              state.camera.targetY = null;
+              state.camera.isFollowingPlayer = true;
+            }
+          );
+        }
+      );
+    });
+  } else {
+    panCameraTo(
+      LEVER_EFFECTS.keySpawnPosition.col,
+      LEVER_EFFECTS.keySpawnPosition.row,
+      () => {
+        spawnObject(
+          LEVER_EFFECTS.keySpawnPosition.col,
+          LEVER_EFFECTS.keySpawnPosition.row
+        );
+
+        panCameraTo(
+          LEVER_EFFECTS.keySpawnPosition.col,
+          LEVER_EFFECTS.keySpawnPosition.row,
+          () => {
+            state.camera.targetX = null;
+            state.camera.targetY = null;
+            state.camera.isFollowingPlayer = true;
+          }
+        );
+      }
+    );
+  }
+}
 
 function interactWithObject(type, tileData) {
   if (!state.gameplay.interaction) {
