@@ -1,4 +1,5 @@
 import state from "../state.js";
+import { getTileTypeLabel } from "../tiles/types.js";
 
 const touchedTiles = new Set();
 let currentLevelIndex = -1;
@@ -33,6 +34,55 @@ function getCollisionOffsetX() {
 }
 
 let loadingLevelData = false;
+
+function recalculateDiamondTotalsFromMap() {
+  const collectibles = state.gameplay?.collectibles;
+  if (!collectibles) return;
+
+  // Reset collectibles state for the upcoming level
+  collectibles.diamondsCollected = 0;
+  collectibles.diamondsTotal = 0;
+
+  if (collectibles.collectedDiamondKeys?.clear) {
+    collectibles.collectedDiamondKeys.clear();
+  } else if (Array.isArray(collectibles.collectedDiamondKeys)) {
+    collectibles.collectedDiamondKeys.length = 0;
+  }
+
+  // If the map isn't ready yet, keep totals at 0
+  if (!state.tiles.layers.length || !state.mapMaxColumn || !state.mapMaxRow) {
+    return;
+  }
+
+  let diamondsTotal = 0;
+
+  for (let row = 0; row < state.mapMaxRow; row++) {
+    for (let col = 0; col < state.mapMaxColumn; col++) {
+      const index = row * state.mapMaxColumn + col;
+      let tileIndex = null;
+
+      for (const layer of state.tiles.layers) {
+        const layerTile = layer.tiles[index];
+        if (
+          layerTile !== undefined &&
+          layerTile !== state.editing.eraserBrush
+        ) {
+          tileIndex = layerTile;
+          break;
+        }
+      }
+
+      if (tileIndex !== null) {
+        const label = getTileTypeLabel(tileIndex);
+        if (label && label.toLowerCase().includes("diamond")) {
+          diamondsTotal++;
+        }
+      }
+    }
+  }
+
+  collectibles.diamondsTotal = diamondsTotal;
+}
 
 async function loadLevelData(levelIndex) {
   if (levelIndex < 1) {
@@ -119,6 +169,9 @@ export function resetLevelState() {
   currentLevelIndex = -1;
   currentLevelData = null;
   loadingLevelData = false;
+
+  // When a new level starts (or we reset), recompute diamond totals from the map
+  recalculateDiamondTotalsFromMap();
 }
 
 export function getCurrentLevelData() {
