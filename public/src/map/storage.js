@@ -98,8 +98,6 @@ export async function loadMap() {
   if (isMapEmpty()) {
     showLandingPage();
     hideLandingPageLoading();
-  } else {
-    hideLandingPage();
   }
 
   updateSaveButtonVisibility();
