@@ -118,9 +118,10 @@ function shouldExit() {
     : "Are you sure you want to exit the editor?";
   const hasLoadedMap = Boolean(state.originalMapData);
   const hasUnsavedChanges = hasLoadedMap && isMapModifiedFromOriginal();
-  const message = hasUnsavedChanges
-    ? "You have unsaved changes to this map. Exit without saving?"
-    : defaultMessage;
+  const message =
+    hasUnsavedChanges && !isPlayMode
+      ? "You have unsaved changes to this map. Exit without saving?"
+      : defaultMessage;
   return confirm(message);
 }
 

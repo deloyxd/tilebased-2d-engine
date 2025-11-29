@@ -1,5 +1,7 @@
 import state from "../state.js";
 import { getTileTypeLabel } from "../tiles/types.js";
+import { initializeLayersFromData } from "../tiles/layers.js";
+import { updateBackgroundTiles } from "../tiles/background.js";
 
 const touchedTiles = new Set();
 let currentLevelIndex = -1;
@@ -167,6 +169,44 @@ export function resetLevelState() {
   currentLevelIndex = -1;
   currentLevelData = null;
   loadingLevelData = false;
+
+  if (state.gameplay.interaction) {
+    state.gameplay.interaction.activeSign = null;
+    state.gameplay.interaction.activeLever = null;
+    state.gameplay.interaction.isTextModalOpen = false;
+    state.gameplay.interaction.leverStates = {};
+  }
+
+  if (state.camera) {
+    state.camera.targetX = null;
+    state.camera.targetY = null;
+    state.camera.panCallback = null;
+    state.camera.panCallbackTime = null;
+    state.camera.panHoldDuration = 0;
+    state.camera.panEasingFactor = null;
+    state.camera.isFollowingPlayer = true;
+  }
+
+  if (state.originalMapData) {
+    const data = state.originalMapData;
+    state.mapMaxColumn = data.mapMaxColumn;
+    state.mapMaxRow = data.mapMaxRow;
+    const legacyLayer = data.tiles
+      ? [
+          {
+            id: "legacy-layer",
+            name: "Layer 1",
+            visible: true,
+            tiles: data.tiles
+          }
+        ]
+      : [];
+    initializeLayersFromData(
+      data.layers && data.layers.length ? data.layers : legacyLayer,
+      data.activeLayerIndex ?? 0
+    );
+    updateBackgroundTiles();
+  }
 
   recalculateDiamondTotalsFromMap();
 }

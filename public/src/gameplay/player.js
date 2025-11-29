@@ -142,7 +142,7 @@ function setEditorButtonsVisibility(shouldHide) {
   }
   const resetPlayerBtn = state.dom.resetPlayerBtn;
   if (resetPlayerBtn) {
-    resetPlayerBtn.style.display = shouldHide ? "" : "none";
+    resetPlayerBtn.style.display = shouldHide ? "none" : "";
   }
 }
 
