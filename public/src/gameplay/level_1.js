@@ -773,7 +773,13 @@ export default {
           interaction.leverStates &&
           interaction.leverStates[leverKey] === true;
 
-        if (keyTileExists && leverActivated) {
+        if (
+          (keyTileExists ||
+            (state.gameplay.collectibles &&
+              state.gameplay.collectibles.keysTotal &&
+              state.gameplay.collectibles.keysTotal > 0)) &&
+          leverActivated
+        ) {
           collectKey(tileData);
         }
       }
