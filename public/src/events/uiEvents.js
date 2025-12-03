@@ -1139,6 +1139,14 @@ async function handleShowAllLevels(hideCheckboxes = false) {
         }
 
         async function continueOpenMap() {
+          if (
+            state.lastLoadedLevel.id &&
+            state.lastLoadedLevel.id !== levelId
+          ) {
+            await setLevelNotBeingEdited(state.lastLoadedLevel.id);
+            await setLevelNotBeingPlayed(state.lastLoadedLevel.id);
+          }
+
           dom.levelModal.style.display = "none";
           importMapFromData(level.mapData);
           await setLevelNotBeingEdited(levelId);
